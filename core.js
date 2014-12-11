@@ -281,7 +281,7 @@ var Core = (function () {
                 root = this.extensions[name];
 
                 if (!root) {
-                    this.fatal('Mg.extend() Unrecognised extension ' + name);
+                    this.fatal('Core.extend() Unrecognised extension ' + name);
                 }
 
                 this.extensions[id] = Object.create(root);
@@ -348,7 +348,7 @@ var Core = (function () {
                 created   = Object.create(extension);
 
             if (!extension) {
-                this.fatal('Mg.get() Unrecognised extension ' + id);
+                this.fatal('Core.get() Unrecognised extension ' + id);
             } else {
                 created.moduleId = moduleId;
             }
@@ -560,7 +560,7 @@ var Core = (function () {
                 inst = null;
 
             if (!data) {
-                this.notice('Mg.stop() Unrecognised module ' + id);
+                this.notice('Core.stop() Unrecognised module ' + id);
             }
 
             inst = data.instance;
@@ -642,7 +642,7 @@ var Core = (function () {
 
             if (this.hasConfig(key)) {
 
-                this.warning('Mg.setConfig() key ' + key + ' is already set, ' +
+                this.warning('Core.setConfig() key ' + key + ' is already set, ' +
                         'not modifying');
 
             } else {
@@ -670,7 +670,7 @@ var Core = (function () {
 
             if (!this.hasConfig(key)) {
 
-                this.notice('Mg.getConfig() key ' + key + ' is not set, ' +
+                this.notice('Core.getConfig() key ' + key + ' is not set, ' +
                         'returning undefined');
 
             }
