@@ -111,7 +111,17 @@ Core.extend('map', function (Core) {
 
             /**
              * new map.WeakMap([iterable])
-             * - iterable (Array): 
+             * - iterable (Array): Initial values
+             *
+             * Creates a weak map. If an `Array` is passed as the `iterable`
+             * argument, it is taken as the initial values.
+             *
+             *      var o1   = {},
+             *          o2   = {},
+             *          weak = new map.WeakMap([[o1, 'value1'], [o2, 'value2']]);
+             *
+             *      weak.get(o1); // -> 'value1';
+             * 
              **/
             init: function (iterable) {
 
@@ -131,6 +141,18 @@ Core.extend('map', function (Core) {
 
             },
 
+            /**
+             * map.WeakMap#_isValidKey(key) -> Boolean
+             * - key (Object): Object to test.
+             *
+             * Checks to see if if given `key` is a valid WeakMap key, returning
+             * `true` if it is. If the key is not valid, a `TypeError` is
+             * thrown. This is used instead of one of the [[Core.error]] methods
+             * to more closely mirror native functionality.
+             *
+             * If the browser has a native `WeakMap` constructor, this method
+             * will not exist.
+             **/
             _isValidKey: function (key) {
 
                 if (key === null || typeof key !== 'object') {
@@ -141,6 +163,8 @@ Core.extend('map', function (Core) {
 
             },
 
+            /**
+             **/
             set: function (key, value) {
 
                 if (this._isValidKey(key)) {
