@@ -106,6 +106,11 @@ Core.extend('map', function (Core) {
          * collection. Be aware that this optimisation may not possible in
          * browsers that do no have a native `WeakMap` although reasonable steps
          * have been taken to replicate the effect.
+         *
+         * WeakMaps only work with objects as keys (although the objects may be
+         * any non-null object, such as an `Object` literal (`{}`), a DOM Node
+         * or an instance). For a map that may have any data type as a key, use
+         * a [[map.Map]].
          **/
         WeakMap = $c.create({
 
@@ -129,6 +134,13 @@ Core.extend('map', function (Core) {
 
                 symbol += Date.now();
 
+                /**
+                 * map.WeakMap#_symbol -> String
+                 *
+                 * Property name assigned to the key objects to identify the
+                 * stored values. If the browser supports a native `WeakMap`
+                 * then this property will not exist.
+                 **/
                 this._symbol = symbol;
 
                 if ($a.isArray(iterable)) {
@@ -164,6 +176,24 @@ Core.extend('map', function (Core) {
             },
 
             /**
+             * map.WeakMap#set(key, value) -> WeakMap
+             * - key (Object): Key for the value.
+             * - value (*): Value to store.
+             *
+             * Sets the `value` against the given `key`.
+             *
+             *      var ob1 = {},
+             *          ob2 = {},
+             *          map = new map.WeakMap();
+             *          
+             *      map.set(ob1, 'value');
+             *      map.get(ob1); // -> 'value';
+             *
+             * This method will return the instance allowing setting to be
+             * chainable.
+             *
+             *      map.set(ob1, 'value').set(ob2, 'value2');
+             * 
              **/
             set: function (key, value) {
 
@@ -175,14 +205,73 @@ Core.extend('map', function (Core) {
 
             },
 
-            get: function (key, value) {
+            /**
+             * map.WeakMap#get(key) -> *|undefined
+             * - key (Object): Key object.
+             *
+             * Gets the stored information from the given key.
+             *
+             *      var ob1 = {},
+             *          ob2 = {},
+             *          map = new map.WeakMap();
+             *
+             *      map.set(ob1, 'value');
+             *      map.get(ob1); // -> 'value'
+             *
+             * If the key is not recognised, `undefined` is returned.
+             *
+             *      map.get(ob1); // -> 'value'
+             *      map.get(ob2); // -> undefined
+             * 
+             **/
+            get: function (key) {
                 return this._isValidKey(key) ? key[this._symbol] : undefined;
             },
 
+            /**
+             * map.WeakMap#has(key) -> Boolean
+             * - key (Object): Key object.
+             *
+             * Checks to see if the key has any information stored against it in
+             * this map.
+             *
+             *      var ob1 = {},
+             *          ob2 = {},
+             *          map = new map.WeakMap();
+             *
+             *      map.set(ob1, 'value');
+             *      map.has(ob1); // -> true
+             *      map.has(ob2); // -> false
+             *      
+             **/
             has: function (key) {
                 return this._isValidKey(key) && (this._symbol in key);
             },
 
+            /**
+             * map.WeakMap#delete(key) -> Boolean
+             * - key (Object): Key object.
+             *
+             * Deletes the information associated with the given `key`.
+             * 
+             *      var ob1 = {},
+             *          ob2 = {},
+             *          map = new map.WeakMap();
+             *
+             *      map.set(ob1, 'value');
+             *      map.has(ob1); // -> true
+             *      map.delete(ob1); // -> true
+             *      map.has(ob1); // -> false
+             *
+             * This method will return `true` if information was deleted and
+             * `false` if there was no information to delete. No errors are
+             * thrown if information wasn't there to begin with.
+             * 
+             *      map.set(ob1, 'value');
+             *      map.delete(ob1); // -> true
+             *      map.delete(ob2); // -> false
+             * 
+             **/
             'delete': function (key) {
 
                 var isGone = false,
@@ -214,8 +303,10 @@ Core.extend('map', function (Core) {
          * Creates a map. This works the same as normal `Object` hash-map except
          * that keys may be any type, not only `String`s.
          *
-         * Most use of maps will involve using [[map.Map.set]], [[map.Map.get]],
-         * [[map.Map.has]] and [[map.Map.delete]].
+         * Strong maps like this keep internal references to the objects that
+         * act as keys. This means that deleting the object may not
+         * automatically remove it from this map and will not be garbage-
+         * collected. For a more memory-efficient map, use a [[map.WeakMap]].
          **/
         Map = $c.create({
 
@@ -447,7 +538,18 @@ Core.extend('map', function (Core) {
              * map.Map#get(key) -> *
              * - key (*): Key of the value to retrieve.
              *
-             * Retrieves the value of the 
+             * Retrieves the value corresponding to the given key.
+             *
+             *      var map = new map.Map();
+             *      map.set('key1', 'value1');
+             *      map.get('key1'); // -> 'value1'
+             *
+             * If the key is not recognised, `undefined` is returned and no
+             * error is thrown.
+             *
+             *      map.get('key1'); // -> 'value1'
+             *      map.get('key2'); // -> undefined
+             * 
              **/
             get: function (key) {
 
@@ -462,14 +564,66 @@ Core.extend('map', function (Core) {
 
             },
 
+            /**
+             * map.Map#has(key) -> Boolean
+             * - key (*): Key to check.
+             *
+             * Checks to see if the given `key` has any associated information
+             * stored against it.
+             * 
+             *      var map = new map.Map();
+             *      map.set('key1', 'value1');
+             *      map.has('key1'); // -> true
+             *      map.has('key2'); // -> false
+             *
+             **/
             has: function (key) {
                 return this._getIndex(key) > -1;
             },
 
+            /**
+             * map.Map#keys() -> Iterator
+             *
+             * Returns an `Iterator` containing all the keys used to store
+             * information in this map.
+             * 
+             *      var map = new map.Map();
+             *      map.set('key1', 'value1');
+             *      map.set('key2', 'value2');
+             *
+             *      var iter = map.keys();
+             *      iter.next(); // -> {value: 'key1', done: false}
+             *      iter.next(); // -> {value: 'key2', done: false}
+             *      iter.next(); // -> {value: undefined, done: true}
+             *
+             * For an `Iterator` of values, use [[map.Map#values]].
+             **/
             keys: function () {
                 return new Iterator(this._keys);
             },
 
+            /**
+             * map.Map#set(key, value) -> Map
+             * - key (*): Key for the information.
+             * - value (*): Information to be stored.
+             *
+             * Stores information in the map. This method returns the instance
+             * allowing setting to be chained.
+             *
+             *      var map = new map.Map();
+             *      map.set('key1', 'value1').set('key2', 'value2');
+             *      map.has('key1'); // -> true
+             *      map.get('key2'); // -> 'value2'
+             *
+             * The `key` can be anything.
+             *
+             *      map.set(NaN, 'not a number');
+             *      map.get(NaN); // -> 'not a number'
+             *
+             *      map.set(null, 'totally empty');
+             *      map.get(null); // -> 'totally empty'
+             * 
+             **/
             set: function (key, value) {
 
                 var index  = this._getIndex(key),
@@ -490,12 +644,35 @@ Core.extend('map', function (Core) {
 
             },
 
+            /**
+             * map.Map#values() -> Iterator
+             *
+             * Returns an `Iterator` containing all the values stored in this
+             * map.
+             * 
+             *      var map = new map.Map();
+             *      map.set('key1', 'value1');
+             *      map.set('key2', 'value2');
+             *
+             *      var iter = map.values();
+             *      iter.next(); // -> {value: 'value1', done: false}
+             *      iter.next(); // -> {value: 'value2', done: false}
+             *      iter.next(); // -> {value: undefined, done: true}
+             *
+             * For an `Iterator` of keys, use [[map.Map#keys]].
+             **/
             values: function () {
                 return new Iterator(this._values);
             }
 
         });
 
+        /** alias of map.Map#entries
+         *  map.Map#@@iterator()
+         *
+         * Returns an `Iterator` of entries. Used as part of the Iterator
+         * Protocol.
+         **/
         Map.addMethod(
             window.Symbol ? Symbol.iterator : '@@iterator',
             function () {
@@ -512,10 +689,22 @@ Core.extend('map', function (Core) {
 
         Iterator: Iterator,
 
-        weak: function () {
-            return new WeakMap();
+        /**
+         * map.weak([iterable]) -> map.WeakMap
+         * - iterable (Array): Initial values.
+         *
+         * Helper function for creating a [[map.WeakMap]].
+         **/
+        weak: function (iterable) {
+            return new WeakMap(iterable);
         }
 
+        /**
+         * map.create([iterable]) -> map.Map
+         * - iterable (Array): Initial values.
+         *
+         * Helper function for creating a [[map.Map]].
+         **/
         create: function (iterable) {
             return new Map(iterable);
         }
