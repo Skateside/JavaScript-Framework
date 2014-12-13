@@ -1193,6 +1193,35 @@
 
     });
 
+    // $o.is(value1, value2) -> Boolean
+    TEST('$o.is', function (it) {
+
+        it('should work the same as the strict equality operator', function (assert) {
+
+            var o = {},
+                a = [];
+
+            assert.isSame(1 === 1, $o.is(1, 1));
+            assert.isSame(undefined === undefined, $o.is(undefined, undefined));
+            assert.isSame(null === null, $o.is(null, null));
+            assert.isSame(o === o, $o.is(o, o));
+            assert.isSame(a === a, $o.is(a, a));
+            assert.isSame(o === {}, $o.is(o, {}));
+            assert.isSame(a === [], $o.is(a, []));
+
+        });
+
+        it('should considered certain number edge-cases equal', function (assert) {
+
+            assert.isTrue($o.is(NaN, NaN));
+            assert.isFalse($o.is(0, -0));
+            assert.isTrue($o.is(NaN, 0/0));
+            assert.isFalse($o.is(NaN, 1/0));
+
+        });
+
+    });
+
     // $o.isEmpty(object) -> Boolean
     TEST('$o.isEmpty', function (it) {
 
@@ -1280,7 +1309,7 @@
             assert.isSame(temp1.evaluate({foo: 'bar'}), 'bar');
             assert.isSame(temp2.evaluate({foo: 'bar', bar: 'baz'}), 'bar baz');
             assert.isSame(temp3.evaluate({foo: 'bar', bar: 'baz'}), 'bar bar');
-            assert.isSame(temp4.evaluate('#{bar}', {foo: 'bar'}), '#{bar}');
+            assert.isSame(temp4.evaluate({foo: 'bar'}), '#{bar}');
 
         });
 

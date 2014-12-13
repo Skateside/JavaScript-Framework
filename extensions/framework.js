@@ -789,6 +789,36 @@
     }
 
     /**
+     * $o.is(value1, value2) -> Boolean
+     * - value1 (*): First value to test.
+     * - value2 (*): Second value to test.
+     *
+     * Checks to see if two variables have the same value.
+     *
+     *      $o.is('1', '1'); // -> true
+     *      $o.is(1, '1'); // -> false
+     *
+     * In many ways this works the same as the strict equality operator (`===`)
+     * with a couple of notable exceptions.
+     *
+     *      $o.is(NaN, NaN); // -> true
+     *      $o.is(0, -0); // -> false
+     *
+     * See [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is)
+     * for more information.
+     **/
+    function is(value1, value2) {
+
+        return value1 === 0 && value2 === 0 ?
+            1 / value1 === 1 / value2 :
+            value1 !== value1 ?
+                value2 !== value2 :
+                value1 === value2;
+
+    }
+
+
+    /**
      * $a.isArrayLike(array) -> Boolean
      * - array (?): Object to test.
      *
@@ -1714,6 +1744,7 @@
         clone:    clone,
         each:     each,
         extend:   extend,
+        is:       is,
         isEmpty:  isEmptyObject,
         keys:     keys,
         makeOwns: makeOwns,
