@@ -1,7 +1,7 @@
 /**
- * Core
+ *  Core
  *
- * The core itself handles 4 tasks:
+ *  The core itself handles 4 tasks:
  * 
  *     1. Registering modules, starting and stopping them.
  *     2. Registering and accessing extensions.
@@ -9,7 +9,7 @@
  *     4. Handling global configuration (configuration settings required by
  *        multiple modules).
  *
- * These are done using a variety of methods.
+ *  These are done using a variety of methods.
  *
  *      1. [[Core.register]], [[Core.start]], [[Core.startAll]], [[Core.stop]]
  *         and [[Core.stopAll]].
@@ -19,9 +19,9 @@
  *         [[Core.depreciated]].
  *      4. [[Core.setConfig]], [[Core.getConfig]] and [[Core.hasConfig]].
  *
- * Extensions can override existing functionality as well as providing new
- * functionality that any module can access. Modules handle the bulk of the
- * functionality seen by the user.
+ *  Extensions can override existing functionality as well as providing new
+ *  functionality that any module can access. Modules handle the bulk of the
+ *  functionality seen by the user.
  **/
 var Core = (function () {
 
@@ -66,11 +66,11 @@ var Core = (function () {
     error = {
 
         /**
-         * Core.errorLevel -> Object
+         *  Core.errorLevel -> Object
          *
-         * Severity of errors that may be thrown throughout the application's
-         * run-time. The values may change and evolve as the application ages,
-         * but the keys will always exist.
+         *  Severity of errors that may be thrown throughout the application's
+         *  run-time. The values may change and evolve as the application ages,
+         *  but the keys will always exist.
          **/
         errorLevel: {
             fatal:       1, // Stops the application.
@@ -80,12 +80,12 @@ var Core = (function () {
         },
 
         /**
-         * Core.getErrorLevel(severity) -> String
-         * - severity (Number): Error severity level.
+         *  Core.getErrorLevel(severity) -> String
+         *  - severity (Number): Error severity level.
          *
-         * Returns the human-readable error level from the given error level
-         * number. This is mainly used for debugging errors as "Severity: fatal"
-         * is easier to read than "Severity: 1".
+         *  Returns the human-readable error level from the given error level
+         *  number. This is mainly used for debugging errors as
+         *  "Severity: fatal" is easier to read than "Severity: 1".
          *
          *      Core.getErrorLevel(1); // -> "fatal"
          * 
@@ -110,12 +110,12 @@ var Core = (function () {
         },
 
         /**
-         * Core.error(message = "An unknown error occurred", severity = 3)
-         * - message (String): Message for the error.
-         * - severity (Number): Severity of the error level.
+         *  Core.error(message = "An unknown error occurred", severity = 3)
+         *  - message (String): Message for the error.
+         *  - severity (Number): Severity of the error level.
          *
-         * A generic error function. It throws an `Error` with the given
-         * severity.
+         *  A generic error function. It throws an `Error` with the given
+         *  severity.
          *
          *      Core.error();
          *      // throws Error("An unknown error occurred (Severity: 3 notice)");
@@ -139,31 +139,35 @@ var Core = (function () {
 
     };
 
-    /**
-     * Core.notice(message)
-     * - message (String): Message for the error.
+    /** related to: Core.error
+     *  Core.notice(message)
+     *  - message (String): Message for the error.
      *
-     * Helper function for throwning a "notice" level error. See [[Core.error]].
+     *  Helper function for throwning a "notice" level error. Does not stop the
+     *  application, can be ignored but should be fixed.
      **/
-    /**
-     * Core.warning(message)
-     * - message (String): Message for the error.
+    /** related to: Core.error
+     *  Core.warning(message)
+     *  - message (String): Message for the error.
      *
-     * Helper function for throwning a "warning" level error. See
-     * [[Core.error]].
+     *  Helper function for throwning a "warning" level error. Important error
+     *  but the application can continue regardless.
      **/
-    /**
-     * Core.fatal(message)
-     * - message (String): Message for the error.
+    /** related to: Core.error
+     *  Core.fatal(message)
+     *  - message (String): Message for the error.
      *
-     * Helper function for throwning a "fatal" level error. See [[Core.error]].
+     *  Helper function for throwning a "fatal" level error. Application cannot
+     *  continue. Highest level of error.
      **/
-    /**
-     * Core.depreciated(message)
-     * - message (String): Message for the error.
+    /** related to: Core.error
+     *  Core.depreciated(message)
+     *  - message (String): Message for the error.
      *
-     * Helper function for throwning a "depreciated" level error. See
-     * [[Core.error]].
+     *  Helper function for throwning a "depreciated" level error. Thrown when
+     *  the method is depreciated. Application can continue but may eventually
+     *  stop due to the method being removed. When spotted, it should be fixed
+     *  by the developer as soon as possible.
      **/
     forIn(error.errorLevel, function (key, value) {
 
@@ -180,29 +184,29 @@ var Core = (function () {
     extendCore({
 
         /**
-         * Core.extensions -> Object
+         *  Core.extensions -> Object
          *
-         * Collection of all extensions that have been registered with this
-         * application's run.
+         *  Collection of all extensions that have been registered with this
+         *  application's run.
          *
-         * Extensions are registered using [[Core.extend]] and accessed using
-         * [[Core.get]].
+         *  Extensions are registered using [[Core.extend]] and accessed using
+         *  [[Core.get]].
          **/
         extensions: Object.create(null),
 
         /**
-         * Core.extend(id, creator)
-         * - id (String): ID of the extension to register.
-         * - creator (Function): Function that will create the extension.
+         *  Core.extend(id, creator)
+         *  - id (String): ID of the extension to register.
+         *  - creator (Function): Function that will create the extension.
          *
-         * Adds an extension to the core. Extensions are designed to act as a
-         * mediator between the core an any external JavaScript libraries. They
-         * can be sub-classed to be tailored towards a specific module.
-         * Extensions may also be used for adding new functionality to the core.
-         * The `creator` function is passed a copy of the [[Core]] so it can
-         * access (or even replace) parts of the core. By convention, the
-         * argument is always called `Core` to prevent access to the global
-         * variable.
+         *  Adds an extension to the core. Extensions are designed to act as a
+         *  mediator between the core an any external JavaScript libraries. They
+         *  can be sub-classed to be tailored towards a specific module.
+         *  Extensions may also be used for adding new functionality to the
+         *  core. The `creator` function is passed a copy of the [[Core]] so it
+         *  can access (or even replace) parts of the core. By convention, the
+         *  argument is always called `Core` to prevent access to the global
+         *  variable.
          *
          *      Core.extend('ext', function (Core) {
          *
@@ -220,16 +224,16 @@ var Core = (function () {
          * 
          *      });
          *
-         * Extensions can be accessed by modules using [[Core.get]].
+         *  Extensions can be accessed by modules using [[Core.get]].
          *
          *      var ext = Core.get('ext');
          *      ext.add(1, 2); // -> 3
          *      ext.subtract(2, 1); // -> 1
          * 
-         * If the name contains a space, the extension is assumed to be a
-         * module-specific sub-class, with the string before the space being the
-         * name of an existing extension and the string after the space being
-         * the module name.
+         *  If the name contains a space, the extension is assumed to be a
+         *  module-specific sub-class, with the string before the space being
+         *  the name of an existing extension and the string after the space
+         *  being the module name.
          *
          *      Core.extend('ext mod', function (Core) {
          *
@@ -249,9 +253,10 @@ var Core = (function () {
          *      
          *      });
          *
-         * In the above example, the "mod" module will have a modified
-         * [[Core.get]] that will have the `moduleId` argument pre-set to "mod",
-         * thus is will get the "ext mod" extension, not the "ext" extension.
+         *  In the above example, the "mod" module will have a modified
+         *  [[Core.get]] that will have the `moduleId` argument pre-set to
+         *  "mod", thus is will get the "ext mod" extension, not the "ext"
+         *  extension.
          *
          *      // Inside the "mod" module
          *      var ext = Core.get('ext');
@@ -259,9 +264,9 @@ var Core = (function () {
          *      ext.subtract(2, 1); // -> 1
          *      ext.multiply(2, 3); // -> 6
          *
-         * If the extension is attempting to sub-class an extension that doesn't
-         * exist, a core error of "fatal" severity will be thrown. See also
-         * [[Core.fatal]].
+         *  If the extension is attempting to sub-class an extension that
+         *  doesn't exist, a core error of "fatal" severity will be thrown. See
+         *  also [[Core.fatal]].
          *
          *      Core.extend('does-not-exist mod', function (Core) {
          *      });
@@ -302,12 +307,12 @@ var Core = (function () {
         },
 
         /**
-         * Core.get(id[, moduleId]) -> Object
-         * - id (String): ID of the extension to get.
-         * - moduleId (String): ID of the module specific variant.
+         *  Core.get(id[, moduleId]) -> Object
+         *  - id (String): ID of the extension to get.
+         *  - moduleId (String): ID of the module specific variant.
          *
-         * Used by modules to retrieve extensions. The [[Core.extensions]]
-         * object is obscured from the modules, but this function never is.
+         *  Used by modules to retrieve extensions. The [[Core.extensions]]
+         *  object is obscured from the modules, but this function never is.
          *
          *      // Assuming these extensions exist:
          *      Core('ext', function (Core) {
@@ -320,8 +325,8 @@ var Core = (function () {
          *      Core.get('ext'); // -> "ext" extension.
          *      Core.get('ext', 'mod'); // -> "mod" variant of "ext" extension.
          *
-         * If the variant extension does not exist, the regular version is
-         * returned instead.
+         *  If the variant extension does not exist, the regular version is
+         *  returned instead.
          *
          *      // Assuming this extensions exists:
          *      Core('ext1', function (Core) {
@@ -331,11 +336,12 @@ var Core = (function () {
          *      Core.get('ext1'); // -> "ext1" extension.
          *      Core.get('ext1', 'mod'); // -> "ext1" extension.
          *
-         * This is used by modules which have the `moduleId` argument pre-set to
-         * their module ID (see [[Core.register]]) to always attempt to get the
-         * module-specific variant before defaulting to the regular version.
-         * However, if the `id` attempts to access an extension that does not
-         * exist, an error of "fatal" level is thrown. See also [[Core.fatal]].
+         *  This is used by modules which have the `moduleId` argument pre-set
+         *  to their module ID (see [[Core.register]]) to always attempt to get
+         *  the module-specific variant before defaulting to the regular
+         *  version. However, if the `id` attempts to access an extension that
+         *  does not exist, an error of "fatal" level is thrown. See also
+         *  [[Core.fatal]].
          *
          *      Core.get('does-not-exist');
          *      // throws fatal
@@ -363,27 +369,27 @@ var Core = (function () {
     extendCore({
 
         /**
-         * Core.modules -> Object
+         *  Core.modules -> Object
          *
-         * Collection of all modules registered. Although public, it is obscured
-         * from the individual modules.
+         *  Collection of all modules registered. Although public, it is
+         *  obscured from the individual modules.
          *
-         * Modules are registered using [[Core.register]], activated using
-         * [[Core.start]] and deactivated using [[Core.stop]].
+         *  Modules are registered using [[Core.register]], activated using
+         *  [[Core.start]] and deactivated using [[Core.stop]].
          **/
         modules: Object.create(null),
 
         /**
-         * Core.register(id, creator)
-         * - id (String): ID of the module.
-         * - creator (Function): Function that creates the module.
+         *  Core.register(id, creator)
+         *  - id (String): ID of the module.
+         *  - creator (Function): Function that creates the module.
          *
-         * Registers a module. The module is created by executing the `creator`
-         * function, allowing the module to have a private state. The `creator`
-         * function is passed a version of the [[Core]] which gives it access to
-         * allowed functionality by keeping it away from protected
-         * functionality. By convention, this argument is always called `Core`
-         * to prevent access to the global variable.
+         *  Registers a module. The module is created by executing the `creator`
+         *  function, allowing the module to have a private state. The `creator`
+         *  function is passed a version of the [[Core]] which gives it access
+         *  to allowed functionality by keeping it away from protected
+         *  functionality. By convention, this argument is always called `Core`
+         *  to prevent access to the global variable.
          *
          *      Core.register('mod', function (Core) {
          *
@@ -399,23 +405,23 @@ var Core = (function () {
          * 
          *      });
          *
-         * The `id` of the module serves to identify module-specific variants of
-         * extensions (it is automatically passed to [[Core.get]] as the
-         * `moduleId` argument) and is used when staring or stopping the module
-         * (using [[Core.start]] and [[Core.stop]] respectively).
+         *  The `id` of the module serves to identify module-specific variants
+         *  of extensions (it is automatically passed to [[Core.get]] as the
+         *  `moduleId` argument) and is used when staring or stopping the module
+         *  (using [[Core.start]] and [[Core.stop]] respectively).
          *
-         * When a module is started using [[Core.start]], the `init` method of
-         * the returned object is executed. As such, `init` is the a required
-         * property and failure to include it will cause an error to be thrown
-         * of fatal severity. See also [[Core.fatal]].
+         *  When a module is started using [[Core.start]], the `init` method of
+         *  the returned object is executed. As such, `init` is the a required
+         *  property and failure to include it will cause an error to be thrown
+         *  of fatal severity. See also [[Core.fatal]].
          *
          *      Core.register('mod1', function (Core) {
          *      });
          *      Core.start('mod1');
          *      // throws fatal
          *
-         * When a module is stopped using [[Core.stop]], the `destroy` method
-         * is call, if it exists. If it does not, no errors are thrown.
+         *  When a module is stopped using [[Core.stop]], the `destroy` method
+         *  is call, if it exists. If it does not, no errors are thrown.
          **/
         register: function (id, creator) {
 
@@ -427,16 +433,17 @@ var Core = (function () {
         },
 
         /**
-         * Core.makeSandbox(id) -> Object
-         * - id (String): ID of the module for which the sandbox should be made.
+         *  Core.makeSandbox(id) -> Object
+         *  - id (String): ID of the module for which the sandbox should be
+         *    made.
          *
-         * Creates the sandbox that is passed to the module's `creator`
-         * function. It appears similar to the main [[Core]] except that
-         * extensions can be referenced, not modified. Additionally, the version
-         * of [[Core.get]] that this sandbox produces automatically passes the
-         * module's ID as the second argument, meaning that the module will
-         * always attempt to get the module-specific variant of any extension
-         * before trying to access the regular version.
+         *  Creates the sandbox that is passed to the module's `creator`
+         *  function. It appears similar to the main [[Core]] except that
+         *  extensions can be referenced, not modified. Additionally, the
+         *  version of [[Core.get]] that this sandbox produces automatically
+         *  passes the module's ID as the second argument, meaning that the
+         *  module will always attempt to get the module-specific variant of any
+         *  extension before trying to access the regular version.
          */
         makeSandbox: function (id) {
 
@@ -456,10 +463,10 @@ var Core = (function () {
         },
 
         /**
-         * Core.start(id)
-         * - id (String): Module ID to start.
+         *  Core.start(id)
+         *  - id (String): Module ID to start.
          *
-         * Activates the module with the `id` given.
+         *  Activates the module with the `id` given.
          *
          *      Core.register('mod', function (Core) {
          *
@@ -475,14 +482,14 @@ var Core = (function () {
          *      Core.start('mod');
          *      // The "mod" module's "init" method has now exacuted.
          *
-         * If the `id` is not a registered module, an error of fatal severity is
-         * thrown. See also [[Core.fatal]].
+         *  If the `id` is not a registered module, an error of fatal severity
+         *  is thrown. See also [[Core.fatal]].
          *
          *      Core.start('does-not-exist');
          *      // throws fatal
          *
-         * Also, if the module does not have an "init" method, a fatal error is
-         * thrown.
+         *  Also, if the module does not have an "init" method, a fatal error is
+         *  thrown.
          * 
          *      Core.register('no-init', function (Core) {
          *          return {};
@@ -491,7 +498,7 @@ var Core = (function () {
          *      Core.start('no-init');
          *      // throws fatal
          *
-         * To stop a module, use [[Core.stop]]. 
+         *  To stop a module, use [[Core.stop]]. 
          **/
         start: function (id) {
 
@@ -515,12 +522,12 @@ var Core = (function () {
         },
 
         /**
-         * Core.stop(id)
-         * - id (String): ID of the module to stop.
+         *  Core.stop(id)
+         *  - id (String): ID of the module to stop.
          *
-         * Stops a module, doing the opposite of [[Core.start]]. If the module
-         * has a "destroy" method, it is executed. No error is thrown if a
-         * "destroy" method does not exist.
+         *  Stops a module, doing the opposite of [[Core.start]]. If the module
+         *  has a "destroy" method, it is executed. No error is thrown if a
+         *  "destroy" method does not exist.
          *
          *      Core.register('has-destroy', function (Core) {
          *          return {
@@ -544,15 +551,15 @@ var Core = (function () {
          *      Core.stop('no-destroy');
          *      // Executed no destroy method, throws no errors.
          *
-         * If the `id` is not a recognised module, an error of notice severity
-         * is thrown. This is less severe than a fatal error because the end
-         * result of the module with the id matching the `id` argument no
-         * running has occured.
+         *  If the `id` is not a recognised module, an error of notice severity
+         *  is thrown. This is less severe than a fatal error because the end
+         *  result of the module with the id matching the `id` argument no
+         *  running has occured.
          *
          *      Core.stop('does-not-exist');
          *      // throws notice
          *
-         * To stop all registered modules, use [[Core.stopAll]].
+         *  To stop all registered modules, use [[Core.stopAll]].
          **/
         stop: function (id) {
 
@@ -577,19 +584,19 @@ var Core = (function () {
 
         },
 
-        /**
-         * Core.startAll()
+        /** related to: Core.start
+         *  Core.startAll()
          *
-         * Starts all registered modules. See [[Core.start]].
+         *  Starts all registered modules.
          **/
         startAll: function () {
             Object.keys(this.modules).forEach(this.start, this);
         },
 
-        /**
-         * Core.stopAll()
+        /** related to: Core.stop
+         *  Core.stopAll()
          *
-         * Stops all registered modules. See [[Core.stop]].
+         *  Stops all registered modules.
          **/
         stopAll: function () {
             Object.keys(this.modules).forEach(this.stop, this);
@@ -601,38 +608,38 @@ var Core = (function () {
     extendCore({
 
         /**
-         * Core.hasConfig(key) -> Boolean
-         * - key (String): Configuration setting to check.
+         *  Core.hasConfig(key) -> Boolean
+         *  - key (String): Configuration setting to check.
          *
-         * Checks to see if the specified configuration setting has been
-         * registered.
+         *  Checks to see if the specified configuration setting has been
+         *  registered.
          *
          *      Core.setConfig('does-exist', true);
          *
          *      Core.hasConfig('does-exist'); // -> true
          *      Core.hasConfig('does-not-exist'); // -> false
          *
-         * To set a configuration setting, use [[Core.setConfig]].
+         *  To set a configuration setting, use [[Core.setConfig]].
          **/
         hasConfig: function (key) {
             return hasOwn.call(config, key);
         },
 
         /**
-         * Core.setConfig(key, value)
-         * - key (String): Configuration setting.
-         * - value (*): Configuration value.
+         *  Core.setConfig(key, value)
+         *  - key (String): Configuration setting.
+         *  - value (*): Configuration value.
          *
-         * Sets connfiguration. This is designed to be access by any module or
-         * extension. To access the configuration, use [[Core.getConfig]].
+         *  Sets connfiguration. This is designed to be access by any module or
+         *  extension. To access the configuration, use [[Core.getConfig]].
          *
          *      Core.setConfig('exists', 'yes');
          *      Core.hasConfig('exists'); // -> true
          *      Core.getConfig('exists'); // -> 'yes'
          *
-         * Configuration is designed to be constant. Attempting to set
-         * configuration that already exists will throw an error of warning
-         * level. See also [[Core.warning]].
+         *  Configuration is designed to be constant. Attempting to set
+         *  configuration that already exists will throw an error of warning
+         *  level. See also [[Core.warning]].
          *
          *      Core.setConfig('exists', 'yes');
          *      Core.setConfig('exists', 'still does'); // throws warning
@@ -652,16 +659,16 @@ var Core = (function () {
         },
 
         /**
-         * Core.getConfig(key) -> *
-         * - key (String): Configuration setting to retrieve.
+         *  Core.getConfig(key) -> *
+         *  - key (String): Configuration setting to retrieve.
          *
-         * Gets the configuration setting.
+         *  Gets the configuration setting.
          *
          *      Core.setConfig('exists', 'yes');
          *      Core.getConfig('exists'); // -> 'yes'
          *
-         * If the configuration setting has not been registered, an error of
-         * notice level is thrown. See also [[Core.notice]].
+         *  If the configuration setting has not been registered, an error of
+         *  notice level is thrown. See also [[Core.notice]].
          *
          *      Core.getConfig('does-not-exist'); // throws notice
          * 

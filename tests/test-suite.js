@@ -95,19 +95,19 @@ var TEST = (function () {
     }
 
     /**
-     * class Asserter
+     *  class Asserter
      *
-     * The Asserter handles all assertions that can be made. Its main comparison
-     * functions are:
+     *  The Asserter handles all assertions that can be made. Its main comparison
+     *  functions are:
      *
-     * - [[Asserter#isTrue]]: is the given value `true`?
-     * - [[Asserter#isFalse]]: is the given value `false`?
-     * - [[Asserter#isSame]]: are the two arguments the same?
-     * - [[Asserter#isNotSame]]: are the two arguments not the same?
-     * - [[Asserter#isSimilar]]: are the two arguments similar?
-     * - [[Asserter#isNotSimilar]]: are the two arguments not similar?
-     * - [[Asserter#throws]]: does the given function throw an Error?
-     * - [[Asserter#notThrows]]: does the given function not throw an Error?
+     *  - [[Asserter#isTrue]]: is the given value `true`?
+     *  - [[Asserter#isFalse]]: is the given value `false`?
+     *  - [[Asserter#isSame]]: are the two arguments the same?
+     *  - [[Asserter#isNotSame]]: are the two arguments not the same?
+     *  - [[Asserter#isSimilar]]: are the two arguments similar?
+     *  - [[Asserter#isNotSimilar]]: are the two arguments not similar?
+     *  - [[Asserter#throws]]: does the given function throw an Error?
+     *  - [[Asserter#notThrows]]: does the given function not throw an Error?
      * 
      **/
     Asserter = function () {
@@ -117,78 +117,78 @@ var TEST = (function () {
     Asserter.prototype = {
 
         /**
-         * new Asserter()
+         *  new Asserter()
          **/
         init: function () {
 
             /**
-             * Asserter#results -> Array
+             *  Asserter#results -> Array
              *
-             * Collection of all results.
+             *  Collection of all results.
              **/
             this.results = [];
 
         },
 
         /**
-         * Asserter#isTrue(value)
-         * - value (*): Value to test.
+         *  Asserter#isTrue(value)
+         *  - value (*): Value to test.
          *
-         * Checks to see if the given value is `true`.
+         *  Checks to see if the given value is `true`.
          **/
         isTrue: function (value) {
             this.results.push(value === true);
         },
 
         /**
-         * Asserter#isFalse(value)
-         * - value (*): Value to test.
+         *  Asserter#isFalse(value)
+         *  - value (*): Value to test.
          *
-         * Checks to see if the given value is `false`.
+         *  Checks to see if the given value is `false`.
          **/
         isFalse: function (value) {
             this.results.push(value === false);
         },
 
         /**
-         * Asserter#isSame(value1, value2)
-         * - value1 (*): A value to test.
-         * - value2 (*): Another value to test.
+         *  Asserter#isSame(value1, value2)
+         *  - value1 (*): A value to test.
+         *  - value2 (*): Another value to test.
          *
-         * Checks to see if the two values are identical. Be aware that this
-         * uses the strict comparison operator (`===`) so will decide that two
-         * similar looking `Array`s are not the same. To test complex objects,
-         * use [[Asserter#isSimilar]]. To check that the two values are not the
-         * same, use [[Asserter#isNotSame]].
+         *  Checks to see if the two values are identical. Be aware that this
+         *  uses the strict comparison operator (`===`) so will decide that two
+         *  similar looking `Array`s are not the same. To test complex objects,
+         *  use [[Asserter#isSimilar]]. To check that the two values are not the
+         *  same, use [[Asserter#isNotSame]].
          **/
         isSame: function (value1, value2) {
             this.results.push(value1 === value2);
         },
 
         /**
-         * Asserter#isNotSame(value1, value2)
-         * - value1 (*): A value to test.
-         * - value2 (*): Another value to test.
+         *  Asserter#isNotSame(value1, value2)
+         *  - value1 (*): A value to test.
+         *  - value2 (*): Another value to test.
          *
-         * Does the opposite to [[Asserter#isSame]]. For ensuring that two
-         * complex objects are not similar, use [[Asserter#isNotSimilar]].
+         *  Does the opposite to [[Asserter#isSame]]. For ensuring that two
+         *  complex objects are not similar, use [[Asserter#isNotSimilar]].
          **/
         isNotSame: function (value1, value2) {
             this.results.push(value1 !== value2);
         },
 
         /**
-         * Asserter#isSimilar(value1, value2)
-         * - value1 (*): A value to test.
-         * - value2 (*): Another value to test.
+         *  Asserter#isSimilar(value1, value2)
+         *  - value1 (*): A value to test.
+         *  - value2 (*): Another value to test.
          *
-         * Checks to see if the two values are similar. This uses loose
-         * comparison (`==`) and will walk through `Object`s and `Array`s. It
-         * will also stringify `Function`s (using `Function.prototype.toString`)
-         * and consider two `NaN` values to be the same. This is useful when
-         * checking complex objects but can coerce types causing false positives
-         * (for example, comparing `1` and `'1'`). For those situations, use
-         * [[Asserter#isSame]].
+         *  Checks to see if the two values are similar. This uses loose
+         *  comparison (`==`) and will walk through `Object`s and `Array`s. It
+         *  will also stringify `Function`s (using
+         *  `Function.prototype.toString`) and consider two `NaN` values to be
+         *  the same. This is useful when checking complex objects but can
+         *  coerce types causing false positives (for example, comparing `1` and
+         *  `'1'`). For those situations, use [[Asserter#isSame]].
          **/
         isSimilar: function (value1, value2) {
 
@@ -208,13 +208,13 @@ var TEST = (function () {
         },
 
         /**
-         * Asserter#isNotSimilar(value1, value2)
-         * - value1 (*): A value to test.
-         * - value2 (*): Another value to test.
+         *  Asserter#isNotSimilar(value1, value2)
+         *  - value1 (*): A value to test.
+         *  - value2 (*): Another value to test.
          *
-         * Does the opposite to [[Asserter#isSimilar]]. For ensuring that two
-         * complex objects do not take up the same space in memory, or for
-         * comparing primative variables, use [[Asserter#isNotSame]].
+         *  Does the opposite to [[Asserter#isSimilar]]. For ensuring that two
+         *  complex objects do not take up the same space in memory, or for
+         *  comparing primative variables, use [[Asserter#isNotSame]].
          **/
         isNotSimilar: function (value1, value2) {
 
@@ -237,11 +237,11 @@ var TEST = (function () {
         },
 
         /**
-         * Asserter#throws(func)
-         * - func (Function): Function that might throw an Error.
+         *  Asserter#throws(func)
+         *  - func (Function): Function that might throw an Error.
          *
-         * Checks to see if the given function throws an `Error`. To ensure that
-         * a function does not, use [[Asserter#notThrows]].
+         *  Checks to see if the given function throws an `Error`. To ensure
+         *  that a function does not, use [[Asserter#notThrows]].
          **/
         throws: function (func) {
 
@@ -258,11 +258,11 @@ var TEST = (function () {
         },
 
         /**
-         * Asserter#notThrows(func)
-         * - func (Function): Function that might throw an Error.
+         *  Asserter#notThrows(func)
+         *  - func (Function): Function that might throw an Error.
          *
-         * Checks to ensure that the given function does not throw an `Error`.
-         * To ensure that a function does not, use [[Asserter#notThrows]].
+         *  Checks to ensure that the given function does not throw an `Error`.
+         *  To ensure that a function does not, use [[Asserter#notThrows]].
          **/
         notThrows: function (func) {
 
@@ -279,11 +279,11 @@ var TEST = (function () {
         },
 
         /**
-         * Asserter#report() -> Object
+         *  Asserter#report() -> Object
          *
-         * Reports the results of the assertions given, effectively returning
-         * the results of [[Asserter#results]] but analysing them to give the
-         * number of `tests` and `passes`.
+         *  Reports the results of the assertions given, effectively returning
+         *  the results of [[Asserter#results]] but analysing them to give the
+         *  number of `tests` and `passes`.
          **/
         report: function () {
 
@@ -297,11 +297,11 @@ var TEST = (function () {
         },
 
         /**
-         * Asserter#resultIsTrue(result) -> Boolean
-         * - result (Boolean): Result to test.
+         *  Asserter#resultIsTrue(result) -> Boolean
+         *  - result (Boolean): Result to test.
          *
-         * Helper function for [[Asserter#report]]. Simply checks to see if the
-         * given result is `true`.
+         *  Helper function for [[Asserter#report]]. Simply checks to see if the
+         *  given result is `true`.
          **/
         resultIsTrue: function (result) {
             return result === true;
@@ -310,10 +310,10 @@ var TEST = (function () {
     };
 
     /**
-     * class Tester
+     *  class Tester
      *
-     * Keeps track of the individual test. Crucially, the [[Tester#it]] function
-     * is passed to the tests, giving access to the [[Asserter]] methods.
+     *  Keeps track of the individual test. Crucially, the [[Tester#it]] function
+     *  is passed to the tests, giving access to the [[Asserter]] methods.
      **/
     Tester = function () {
         return this.init.apply(this, arguments);
@@ -322,47 +322,47 @@ var TEST = (function () {
     Tester.prototype = {
 
         /**
-         * new Tester(name)
-         * - name (String): Name of the test.
+         *  new Tester(name)
+         *  - name (String): Name of the test.
          **/
         init: function (name) {
 
             /**
-             * Tester#name -> String
+             *  Tester#name -> String
              *
-             * Name of the test.
+             *  Name of the test.
              **/
             this.name = name;
 
             /**
-             * Tester#assertions -> Array
+             *  Tester#assertions -> Array
              *
-             * All assertions made during this test.
+             *  All assertions made during this test.
              **/
             this.assertions = [];
 
         },
 
         /**
-         * Tester#process(tests)
-         * - tests (Function): Tests to run with this tester.
+         *  Tester#process(tests)
+         *  - tests (Function): Tests to run with this tester.
          *
-         * Runs through the tests given. Each test is passed a reference to
-         * [[Tester#it]], bound to the current instance.
+         *  Runs through the tests given. Each test is passed a reference to
+         *  [[Tester#it]], bound to the current instance.
          **/
         process: function (tests) {
             tests(this.it.bind(this));
         },
 
         /**
-         * Tester#it(assertion, tests)
-         * - assertion (String): Assertion for the test.
-         * - tests (Function): Function to test the assertion.
+         *  Tester#it(assertion, tests)
+         *  - assertion (String): Assertion for the test.
+         *  - tests (Function): Function to test the assertion.
          *
-         * This function handles the bulk of the testing. It allows an assertion
-         * to be made and then tested. Multiple assertions can be made within a
-         * test and multiple checks can be made within the `tests` function. The
-         * `tests` function is passed a new instance of [[Asserter]].
+         *  This function handles the bulk of the testing. It allows an assertion
+         *  to be made and then tested. Multiple assertions can be made within a
+         *  test and multiple checks can be made within the `tests` function. The
+         *  `tests` function is passed a new instance of [[Asserter]].
          *
          *      it('should work properly', function (assert) {
          *          assert.isTrue(1 == '1');
@@ -379,7 +379,10 @@ var TEST = (function () {
             try {
                 tests(assert);
             } catch (ex) {
+
                 err = stringify(ex);
+                console.error(ex);
+
             }
 
             report = assert.report();
@@ -396,13 +399,13 @@ var TEST = (function () {
     };
 
     /**
-     * TEST(name, tests)
-     * - name (String): Name of the group of tests.
-     * - tests (Function): Tests to run.
+     *  TEST(name, tests)
+     *  - name (String): Name of the group of tests.
+     *  - tests (Function): Tests to run.
      *
-     * Runs the `tests` passed to it. The `name` argument is used as a unique
-     * key, allowing later tests to be added to an existing test. The tests are
-     * run through [[Tester#process]] so they are each passed [[Tester#it]].
+     *  Runs the `tests` passed to it. The `name` argument is used as a unique
+     *  key, allowing later tests to be added to an existing test. The tests are
+     *  run through [[Tester#process]] so they are each passed [[Tester#it]].
      *
      *      TEST('Basic JavaScript', function (it) {
      *
@@ -430,22 +433,22 @@ var TEST = (function () {
     };
 
     /**
-     * TEST.tests -> Object
+     *  TEST.tests -> Object
      *
-     * Collection of all tests that have been run using the [[TEST]] function.
-     * These are stored against [[TEST]]'s `name` argument. Although publicly
-     * visible, it should be considered **private** and not touched by external
-     * programs.
+     *  Collection of all tests that have been run using the [[TEST]] function.
+     *  These are stored against [[TEST]]'s `name` argument. Although publicly
+     *  visible, it should be considered **private** and not touched by external
+     *  programs.
      **/
     test.tests = {};
 
     /**
-     * TEST.getReport(tester) -> Object
-     * - tester (Tester): Instance of [[Tester]].
+     *  TEST.getReport(tester) -> Object
+     *  - tester (Tester): Instance of [[Tester]].
      *
-     * Gets the report from the instance of [[Tester]] requested. This is mainly
-     * used as a helper function for [[TEST.report]] but can be used to get an
-     * individual report from the tests stored in [[TEST.tests]].
+     *  Gets the report from the instance of [[Tester]] requested. This is
+     *  mainly used as a helper function for [[TEST.report]] but can be used to
+     *  get an individual report from the tests stored in [[TEST.tests]].
      **/
     test.getReport = function (tester) {
 
@@ -470,11 +473,11 @@ var TEST = (function () {
     };
 
     /**
-     * TEST.report() -> Object
+     *  TEST.report() -> Object
      *
-     * The report for all tests passed to the [[TEST]] function. Each report is
-     * returned against the `name` argument given to the [[TEST]] function and
-     * is the main access point for all external functions.
+     *  The report for all tests passed to the [[TEST]] function. Each report is
+     *  returned against the `name` argument given to the [[TEST]] function and
+     *  is the main access point for all external functions.
      **/
     test.report = function () {
 

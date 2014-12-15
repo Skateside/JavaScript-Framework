@@ -1097,7 +1097,7 @@
 
     });
 
-    // $o.clone(object) -> Object
+    // $o.clone(object, bitmask = 0) -> Object
     TEST('$o.clone', function (it) {
 
         it('should copy an object so that changing the first doesn\'t change the second', function (assert) {
@@ -1111,6 +1111,120 @@
             delete o1.foo;
             assert.isNotSimilar(o1, ex);
             assert.isSimilar(o2, ex);
+
+        });
+
+        it('should allow for deep copies', function (assert) {
+
+            var node = document.createElement('div'),
+                o1   = {foo: {bar: true, baz: true, arr: [1, 2, 3], dom: node}},
+                o2   = $o.clone(o1),
+                o3   = $o.clone(o1, $o.CLONE_DEEP),
+                ex   = {foo: {bar: true, baz: true, arr: [1, 2, 3], dom: node}};
+
+            assert.isSimilar(o2, ex);
+            assert.isSimilar(o3, ex);
+
+            o1.foo.bar = false;
+
+            assert.isNotSimilar(o2, ex);
+            assert.isSimilar(o3, ex);
+
+            assert.isSimilar(o1.foo.arr, o3.foo.arr);
+            o1.foo.arr[0] = 4;
+            assert.isNotSimilar(o1.foo.arr, o3.foo.arr);
+            assert.isSame(o1.foo.dom, o3.foo.dom);
+
+        });
+
+        it('should copy property descriptors if requested', function (assert) {
+
+            var o1 = {};
+
+            Object.defineProperty(o1, 'foo', {
+                configurable: true,
+                enumerable:   true,
+                value:        true,
+                writable:     false // read-only
+            });
+
+            var o2 = $o.clone(o1);
+            var o3 = $o.clone(o1, $o.CLONE_DESC);
+
+            assert.isTrue(o2.foo);
+            assert.isTrue(o3.foo);
+
+            try {
+
+                o2.foo = false;
+                o3.foo = false;
+
+            } catch (ignore) {
+                // Attempting to override a read-only property can throw errors.
+                // Error throwing is not part of the test.
+            }
+
+            assert.isFalse(o2.foo);
+            assert.isTrue(o3.foo);
+
+        });
+
+        it('should copy non enumerable properties only if asked', function (assert) {
+
+            var o1 = {};
+
+            Object.defineProperty(o1, 'foo', {
+                configurable: true,
+                enumerable:   false,
+                value:        true,
+                writable:     true
+            });
+
+            var o2 = $o.clone(o1);
+            var o3 = $o.clone(o1, $o.CLONE_ENUM);
+
+            assert.isSame(o2.foo, undefined);
+            assert.isSame(o3.foo, true);
+
+            assert.isFalse('foo' in o2);
+            assert.isTrue('foo' in o3);
+
+        });
+
+        it('should allow the bitmask to be combined', function (assert) {
+
+            var o1 = {};
+
+            Object.defineProperty(o1, 'foo', {
+                configurable: true,
+                enumerable:   false,
+                value:        true,
+                writable:     false
+            });
+
+            var o2 = $o.clone(o1);
+            var o3 = $o.clone(o1, $o.CLONE_ENUM);
+            var o4 = $o.clone(o1, $o.CLONE_ENUM | $o.CLONE_DESC);
+
+            assert.isTrue('foo' in o1);
+            assert.isFalse('foo' in o2);
+            assert.isTrue('foo' in o3);
+            assert.isTrue('foo' in o4);
+
+            try {
+
+                o2.foo = false;
+                o3.foo = false;
+                o4.foo = false;
+
+            } catch (ignore) {
+                // Attempting to override a read-only property can throw errors.
+                // Error throwing is not part of the test.
+            }
+
+            assert.isNotSame(o1.foo, o2.foo);
+            assert.isNotSame(o1.foo, o3.foo);
+            assert.isSame(o1.foo, o4.foo);
 
         });
 
@@ -1296,6 +1410,85 @@
 
     });
 
+    // $s.clip(string, maxLength, type = $s.CLIP_RIGHT) -> String
+    TEST('$s.clip', function (it) {
+
+        it('should reduce a string length to the given amount', function (assert) {
+
+            assert.isSame($s.clip('abcdefg', 5), 'abcde');
+            assert.isSame($s.clip('abcdefg', 1), 'a');
+            assert.isSame($s.clip('abcdefg', 9), 'abcdefg');
+
+        });
+
+        it('should allow the type of clipping to be defined', function (assert) {
+
+            assert.isSame($s.clip('abcdefg', 5, $s.CLIP_LEFT),  'cdefg');
+            assert.isSame($s.clip('abcdefg', 5, $s.CLIP_RIGHT), 'abcde');
+            assert.isSame($s.clip('abcdefg', 5, $s.CLIP_BOTH),  'bcdef');
+            assert.isSame($s.clip('abcdefg', 4, $s.CLIP_BOTH),  'bcde' );
+
+        });
+
+        it('should normalise the clipping number', function (assert) {
+
+            assert.isSame($s.clip('abcdefg', 5.1), 'abcde');
+            assert.isSame($s.clip('abcdefg', 5.9), 'abcde');
+            assert.isSame($s.clip('abcdefg', -5),  'abcde');
+            assert.isSame($s.clip('abcdefg', '5'), 'abcde');
+
+        });
+
+    });
+
+    // $s.pad(string, minLength, padding = '0', type = $s.PAD_RIGHT) -> String
+    TEST('$s.pad', function (it) {
+
+        it('should pad strings out to the given minimum length', function (assert) {
+
+            assert.isSame($s.pad('abcde', 10, '-'), 'abcde-----');
+            assert.isSame($s.pad('abcde', 1, '-'), 'abcde');
+            assert.isSame($s.pad('abcde', 10), 'abcde00000');
+
+        });
+
+        it('should clip padding as necessary', function (assert) {
+
+            assert.isSame($s.pad('abcde', 10, 'abcde'), 'abcdeabcde');
+            assert.isSame($s.pad('abcde',  7, 'abcde'), 'abcdeab');
+
+        });
+
+        it('should pad from the left, right or both as requested', function (assert) {
+
+            assert.isSame($s.pad('abcde', 10, '-', $s.PAD_LEFT ), '-----abcde');
+            assert.isSame($s.pad('abcde', 10, '-', $s.PAD_RIGHT), 'abcde-----');
+            assert.isSame($s.pad('abcde', 10, '-', $s.PAD_BOTH ), '--abcde---');
+
+        });
+
+    });
+
+    // $s.pad(string, times) -> String
+    TEST('$s.repeat', function (it) {
+
+        it('should repeat any string the requested number of times', function (assert) {
+
+            assert.isSame($s.repeat('abc', 3), 'abcabcabc');
+
+        });
+
+        it('should normalise the number of times', function (assert) {
+
+            assert.isSame($s.repeat('abc', 3.1), 'abcabcabc');
+            assert.isSame($s.repeat('abc', 3.9), 'abcabcabc');
+            assert.isSame($s.repeat('abc',  -3), 'abcabcabc');
+            assert.isSame($s.repeat('abc', '3'), 'abcabcabc');
+
+        });
+
+    });
+
     // new $s.Template(string[, pattern])
     TEST('$s.Template', function (it) {
 
@@ -1319,12 +1512,14 @@
                 temp2 = new $s.Template('\'#{foo}\''),
                 temp3 = new $s.Template('\n#{foo}'),
                 temp4 = new $s.Template('\\ #{foo}'),
+                temp5 = new $s.Template('##{foo}'),
                 map   = {foo: 'bar'};
 
             assert.isSame(temp1.evaluate(map), '"bar"');
             assert.isSame(temp2.evaluate(map), '\'bar\'');
             assert.isSame(temp3.evaluate(map), '\nbar');
             assert.isSame(temp4.evaluate(map), '\\ bar');
+            assert.isSame(temp5.evaluate(map), '#bar');
 
         });
 
@@ -1392,6 +1587,40 @@
                 map  = {foo: 'bar'};
 
             assert.isSame($s.supplant(str, map), temp.evaluate(map));
+
+        });
+
+    });
+
+    // $s.uniqid([prefix]) -> String
+    TEST('$s.uniqid', function (it) {
+
+        it('should always return a unique ID', function (assert) {
+
+            var id1 = $s.uniqid(),
+                id2 = $s.uniqid(),
+                id3 = $s.uniqid();
+
+            assert.isNotSame(id1, id2);
+            assert.isNotSame(id1, id3);
+            assert.isNotSame(id2, id3);
+
+        });
+
+        it('should allow the unique ID to be prefixed', function (assert) {
+
+            var pre = 'Testing prefix',
+                id1 = $s.uniqid(pre),
+                id2 = $s.uniqid(pre),
+                id3 = $s.uniqid(pre);
+
+            assert.isNotSame(id1, id2);
+            assert.isNotSame(id1, id3);
+            assert.isNotSame(id2, id3);
+
+            assert.isSame(id1.substr(0, pre.length), pre);
+            assert.isSame(id2.substr(0, pre.length), pre);
+            assert.isSame(id3.substr(0, pre.length), pre);
 
         });
 

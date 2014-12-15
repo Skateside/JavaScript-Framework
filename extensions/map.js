@@ -12,6 +12,7 @@ Core.extend('map', function (Core) {
     var $a      = Core.get('array'),
         $c      = Core.get('class'),
         $o      = Core.get('object'),
+        $s      = Core.get('string'),
         Map     = window.Map,
         WeakMap = window.WeakMap,
 
@@ -130,10 +131,6 @@ Core.extend('map', function (Core) {
              **/
             init: function (iterable) {
 
-                var symbol = '@@Core-framework-WeakMapReference-';
-
-                symbol += Date.now();
-
                 /**
                  * map.WeakMap#_symbol -> String
                  *
@@ -141,7 +138,7 @@ Core.extend('map', function (Core) {
                  * stored values. If the browser supports a native `WeakMap`
                  * then this property will not exist.
                  **/
-                this._symbol = symbol;
+                this._symbol = $s.uniqid('$Core-framework-WeakMapReference-');
 
                 if ($a.isArray(iterable)) {
 
@@ -198,7 +195,14 @@ Core.extend('map', function (Core) {
             set: function (key, value) {
 
                 if (this._isValidKey(key)) {
-                    key[this._symbol] = value;
+
+                    Object.defineProperty(key, this._symbol, {
+                        configurable: true,
+                        enumerable:   false,
+                        value:        value,
+                        writable:     true
+                    });
+
                 }
 
                 return this;
