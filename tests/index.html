@@ -1097,6 +1097,46 @@
 
     });
 
+    // $o.addConfig(object, settings)
+    TEST('$o.addConfig', function (it) {
+
+        it('should allow configuration settings to be defined', function (assert) {
+
+            var object = {};
+
+            $o.addConfig(object, {
+                foo: true
+            });
+
+            assert.isTrue('foo' in object);
+            assert.isTrue(Object.prototype.hasOwnProperty.call(object, 'foo'));
+            assert.isTrue(object.foo);
+
+        });
+
+        it('should prevent settings being overridden', function (assert) {
+
+            var object = {};
+
+            $o.addConfig(object, {
+                foo: true
+            });
+
+            assert.isTrue(object.foo);
+
+            try {
+                object.foo = false;
+            } catch (ignore) {
+                // Attempting to override a read-only property can throw errors.
+                // Error throwing is not part of the test.
+            }
+
+            assert.isTrue(object.foo);
+
+        });
+
+    });
+
     // $o.clone(object, bitmask = 0) -> Object
     TEST('$o.clone', function (it) {
 
@@ -1369,6 +1409,22 @@
 
     });
 
+    // $o.makeMaskCheck(bitmask) -> Function
+    TEST('$o.makeMaskCheck', function (it) {
+
+        it('should create a bitmask checker', function (assert) {
+
+            var check = $o.makeMaskCheck(7);
+
+            assert.isTrue(check(1));
+            assert.isTrue(check(2));
+            assert.isTrue(check(4));
+            assert.isFalse(check(8));
+
+        });
+
+    });
+
     // $o.makeOwns(object) -> Function
     TEST('$o.makeOwns', function (it) {
 
@@ -1423,8 +1479,9 @@
 
         it('should allow the type of clipping to be defined', function (assert) {
 
-            assert.isSame($s.clip('abcdefg', 5, $s.CLIP_LEFT),  'cdefg');
             assert.isSame($s.clip('abcdefg', 5, $s.CLIP_RIGHT), 'abcde');
+            assert.isSame($s.clip('abcdefg', 5, $s.CLIP_LEFT),  'cdefg');
+            assert.isSame($s.clip('abcdefg', 5, $s.CLIP_RIGHT | $s.CLIP_LEFT), 'bcdef');
             assert.isSame($s.clip('abcdefg', 5, $s.CLIP_BOTH),  'bcdef');
             assert.isSame($s.clip('abcdefg', 4, $s.CLIP_BOTH),  'bcde' );
 
@@ -1461,9 +1518,10 @@
 
         it('should pad from the left, right or both as requested', function (assert) {
 
-            assert.isSame($s.pad('abcde', 10, '-', $s.PAD_LEFT ), '-----abcde');
             assert.isSame($s.pad('abcde', 10, '-', $s.PAD_RIGHT), 'abcde-----');
+            assert.isSame($s.pad('abcde', 10, '-', $s.PAD_LEFT ), '-----abcde');
             assert.isSame($s.pad('abcde', 10, '-', $s.PAD_BOTH ), '--abcde---');
+            assert.isSame($s.pad('abcde', 10, '-', $s.PAD_RIGHT | $s.PAD_LEFT), '--abcde---');
 
         });
 

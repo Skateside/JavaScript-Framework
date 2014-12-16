@@ -155,13 +155,70 @@
         },
 
         // Less powerful than $o.extend but necessary for creating this file.
-        augment = function (source, additional) {
+        augment = function (source, additional, isConfig) {
 
-            forIn(additional, function (name, method) {
+            forIn(additional, isConfig ? function (name, method) {
+
+                Object.defineProperty(source, name, {
+                    configurable: false,
+                    enumerable:   true,
+                    value:        method,
+                    writable:     false
+                });
+
+            } : function (name, method) {
                 source[name] = method;
             });
 
         };
+
+    /**
+     *  $o.addConfig(object, settings)
+     *  - object (Object): Object that should gain configuration values.
+     *  - settings (Object): Configuration settings for the object.
+     *
+     *  Adds configuration settings to an object. As configuration settings, the
+     *  properties are enumerable but neither configurable nor writable. This
+     *  prevents them being overridden (some browsers even throw a `TypeError`
+     *  when attempting to override them).
+     *
+     *      var o = {};
+     *      $o.addConfig(object, {
+     *          isReal: true
+     *      });
+     *
+     *      o.isReal; // -> true
+     *      o.isReal = false;
+     *      o.isReal; // -> true
+     *
+     *  **Pro tip**
+     *
+     *  When attempting to create a bitmask, settings should be powers of 2 (1,
+     *  2, 4, 8 ...). Writing the settings in hexadecimal literals can save
+     *  mentally doubling a number all the time as the pattern is easy to
+     *  follow:
+     *
+     *      var dec = [   1,    2,    4,    8,   16,   32,   64,  128],
+     *          hex = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80]
+     *
+     *  Settings can be combined using either a bitwise OR operator (`|`) or a
+     *  plus operator (`+`) and decoded inside the object methods using
+     *  [[$o.makeMaskCheck]].
+     **/
+    function addConfig(object, settings) {
+
+        this.each(settings, function (key, value) {
+
+            Object.defineProperty(object, key, {
+                configurable: false,
+                enumerable:   true,
+                value:        value,
+                writable:     false
+            });
+
+        });
+
+    }
 
     /**
      *  Class.addMethod(name, method)
@@ -273,10 +330,10 @@
     }
 
     /**
-     *  $s.clip(string, maxLength, type = $s.CLIP_RIGHT) -> String
+     *  $s.clip(string, maxLength, bitmask = $s.CLIP_RIGHT) -> String
      *  - string (String): String to clip.
      *  - maxLength (Number): Maximum length of the string.
-     *  - type (Number): Type of clipping.
+     *  - bitmask (Number): Type of clipping.
      *
      *  Clips a string to a maximum length.
      *
@@ -286,18 +343,19 @@
      *
      *      $s.clip('abcdefg', 10); // -> "abcdefg"
      *
-     *  The function has 3 `type` settings:
+     *  The function has 3 `bitmask` settings:
      *
-     *  - `$s.CLIP_LEFT` removes characters from the left.
      *  - `$s.CLIP_RIGHT` removes characters from the right (default action).
-     *  - `$s.CLIP_BOTH` removes characters from both sides.
+     *  - `$s.CLIP_LEFT` removes characters from the left.
+     *  - `$s.CLIP_BOTH` removes characters from both sides (short-cut for
+     *    `$s.CLIP_RIGHT | $s.CLIP_LEFT`.
      *
      *  Although it is possible to pass in numbers as opposed to constants, the
      *  constants are guarenteed to work no matter what upgrades may take place.
      *
-     *      $s.clip('abcdefg', 5, $s.CLIP_LEFT); // -> "cdefg"
      *      $s.clip('abcdefg', 5, $s.CLIP_RIGHT); // -> "abcde"
-     *      $s.clip('abcdefg', 5, $s.CLIP_BOTH); // -> "bcdef"
+     *      $s.clip('abcdefg', 5, $s.CLIP_LEFT);  // -> "cdefg"
+     *      $s.clip('abcdefg', 5, $s.CLIP_BOTH);  // -> "bcdef"
      *
      *  If an qual number of characters cannot be removed from the left and
      *  right when using `$s.CLIP_BOTH`, the additional character is removed
@@ -305,32 +363,25 @@
      *
      *      $s.clip('abcdefg', 4, $s.CLIP_BOTH); // -> "bcde"
      *
-     *  The `type` argument is not designed to be a bitmask. While the following
-     *  code may work, it is not guarenteed:
-     *
-     *      $s.clip('abcdefg', 4, $s.CLIP_LEFT | $s.CLIP_RIGHT); // Might work.
-     *      $s.clip('abcdefg', 4, $s.CLIP_BOTH); // Will work.
-     *
      **/
     function clip(string, maxLength, type) {
 
         var clipped = String(string),
             len     = clipped.length,
             start   = 0,
-            maxLen  = $n.toPosInt(maxLength);
+            maxLen  = $n.toPosInt(maxLength),
+            passed  = null;
 
         if (len > maxLen) {
 
-            type = type || this.CLIP_RIGHT;
+            passed = $o.makeMaskCheck(+type || this.CLIP_RIGHT);
 
-            if (type === this.CLIP_BOTH) {
-                start = Math.floor((len - maxLen) / 2);
-            } else if (type === this.CLIP_LEFT) {
-                start = len - maxLen;
-            } else if (type === this.CLIP_RIGHT) {
-                start = 0;
-            } else {
-                Core.fatal('$s.clip() Unrecognised type "' + type + '"');
+            if (passed(this.CLIP_LEFT)) {
+
+                start = passed(this.CLIP_RIGHT) ?
+                        Math.floor((len - maxLen) / 2) :
+                        len - maxLen;
+
             }
 
             clipped = clipped.substr(start, maxLen);
@@ -448,15 +499,11 @@
      **/
     function clone(object, bitmask) {
 
-        // Single ampersand (&) is a bitwise operator - not a typo.
-        // Double pipe (||) is a logical operator - not a typo, neither.
-
-        var mask   = +bitmask || 0,
-            isDeep = (bitmask & this.CLONE_DEEP) === this.CLONE_DEEP,
-            isDesc = (bitmask & this.CLONE_DESC) === this.CLONE_DESC,
-            isEnum = (bitmask & this.CLONE_ENUM) === this.CLONE_ENUM,
+        var passed = this.makeMaskCheck(+bitmask || 0),
+            isDeep = passed(this.CLONE_DEEP),
+            isDesc = passed(this.CLONE_DESC),
             copy   = {},
-            method = isEnum ? 'getOwnPropertyNames' : 'keys';
+            method = passed(this.CLONE_ENUM) ? 'getOwnPropertyNames' : 'keys';
 
         Object[method](object).forEach(function (key) {
 
@@ -1182,6 +1229,37 @@
     }
 
     /**
+     *  $o.makeMaskCheck(bitmask) -> Function
+     *  - bitmask (Number): Given combined mask.
+     *
+     *  Creates a function that quickly checks whether a setting was provided.
+     *
+     *      var isOne   = 1,
+     *          isTwo   = 2,
+     *          isFour  = 4,
+     *          isEight = 8;
+     *
+     *      var check = $n.makeMaskCheck(isOne + isFour);
+     *
+     *      check(isOne);   // -> true
+     *      check(isTwo);   // -> false
+     *      check(isFour);  // -> true
+     *      check(isEight); // -> false
+     *
+     *  (When working with positive integers, the logical OR operator (`|`)
+     *  instead of the add operator (`+`) will also work).
+     *
+     *  This method works very well with [[$o.addConfig]].
+     **/
+    function makeMaskCheck(bitmask) {
+
+        return function (setting) {
+            return (bitmask & setting) === setting; // bitwise operator
+        };
+
+    }
+
+    /**
      *  $a.makeInvoker(context) -> Function
      *  - context (Object): Context for the invoker.
      *
@@ -1273,11 +1351,11 @@
     }
 
     /**
-     *  $s.pad(string, minLength, padding = '0', type = $s.PAD_RIGHT) -> String
+     *  $s.pad(string, minLength, padding = '0', bitmask = $s.PAD_RIGHT) -> String
      *  - string (String): Original string to pad.
      *  - minLength (Number): Minimum length of the  final string.
      *  - padding (String): String to use for padding.
-     *  - type (Number): Type of padding to employ.
+     *  - bitmask (Number): Type of padding to employ.
      *
      *  Increases the length of a string to the given `minLength`. If the string
      *  is already as long as (or longer) than the given `minLength`, no action
@@ -1294,53 +1372,47 @@
      *
      *  There are 3 types of padding that can be used:
      *
-     *  - `$s.PAD_LEFT` adds characters to the left.
      *  - `$s.PAD_RIGHT` adds characters to the right (default action).
-     *  - `$s.PAD_BOTH` adds characters to both sides.
+     *  - `$s.PAD_LEFT` adds characters to the left.
+     *  - `$s.PAD_BOTH` adds characters to both sides (short-cut for
+     *    `$s.PAD_RIGHT | $s.PAD_LEFT`).
      * 
-     *      $s.pad('abcde', 10, '-', $s.PAD_LEFT); // -> "abcde-----"
      *      $s.pad('abcde', 10, '-', $s.PAD_RIGHT); // -> "-----abcde"
+     *      $s.pad('abcde', 10, '-', $s.PAD_LEFT); // -> "abcde-----"
      *      $s.pad('abcde', 10, '-', $s.PAD_BOTH); // -> "--abcde---"
      *
-     *  The `type` argument is not a bitmask. While it may be possible to treat
-     *  it as such, this functionality is not guarenteed.
-     *
-     *      $s.pad('abcde', 10, '-', $s.PAD_LEFT | $s.PAD_RIGHT); // Might work.
-     *      $s.pad('abcde', 10, '-', $s.PAD_BOTH); // Will work.
-     * 
      **/
     function pad(string, minLength, padding, type) {
 
-        var str    = String(string),
-            dif    = $n.toPosInt(minLength) - str.length,
-            left   = '',
-            right  = '',
-            lDif   = dif,
-            rDif   = dif,
-            filler = '';
-
-        type   = type || this.PAD_RIGHT;
-        filler = typeof padding === 'string' || typeof padding === 'number' ?
+        var str     = String(string),
+            dif     = $n.toPosInt(minLength) - str.length,
+            left    = '',
+            right   = '',
+            lDif    = dif,
+            rDif    = dif,
+            filler  = typeof padding === 'string' ||
+                    typeof padding === 'number' ?
                 String(padding) :
-                '0';
+                '0',
+            passed  = null,
+            isLeft  = false,
+            isRight = false;
 
         if (dif > 0) {
 
-            if (type === this.PAD_BOTH) {
+            passed  = $o.makeMaskCheck(+type || this.PAD_RIGHT);
+            isLeft  = passed(this.PAD_LEFT);
+            isRight = passed(this.PAD_RIGHT);
+
+            if (isLeft && isRight) {
 
                 lDif = Math.floor(dif / 2);
                 rDif = Math.ceil(dif / 2);
 
-                left  = this.clip(this.repeat(filler, lDif), lDif);
-                right = this.clip(this.repeat(filler, rDif), rDif);
-
-            } else if (type === this.PAD_LEFT) {
-                left = this.clip(this.repeat(filler, lDif), lDif);
-            } else if (type === this.PAD_RIGHT) {
-                right = this.clip(this.repeat(filler, rDif), rDif);
-            } else {
-                Core.fatal('$s.pad() Unrecognised type "' + type + '"');
             }
+
+            left  = isLeft ?  this.clip(this.repeat(filler, lDif), lDif) : '';
+            right = isRight ? this.clip(this.repeat(filler, rDif), rDif) : '';
 
         }
 
@@ -2046,40 +2118,23 @@
     });
 
     augment($o, {
-        clone:    clone,
-        each:     each,
-        extend:   extend,
-        is:       is,
-        isEmpty:  isEmptyObject,
-        keys:     keys,
-        makeOwns: makeOwns,
-        values:   values
+        addConfig:     addConfig,
+        clone:         clone,
+        each:          each,
+        extend:        extend,
+        is:            is,
+        isEmpty:       isEmptyObject,
+        keys:          keys,
+        makeMaskCheck: makeMaskCheck,
+        makeOwns:      makeOwns,
+        values:        values
     });
 
-    Object.defineProperties($o, {
-
-        CLONE_DEEP: {
-            configurable: false,
-            enumerable:   true,
-            value:        1,
-            writable:     false
-        },
-
-        CLONE_DESC: {
-            configurable: false,
-            enumerable:   true,
-            value:        2,
-            writable:     false
-        },
-
-        CLONE_ENUM: {
-            configurable: false,
-            enumerable:   true,
-            value:        4,
-            writable:     false
-        }
-
-    });
+    augment($o, {
+        CLONE_DEEP: 0x01,
+        CLONE_DESC: 0x02,
+        CLONE_ENUM: 0x04
+    }, true);
 
     augment($s, {
         clip:     clip,
@@ -2090,51 +2145,17 @@
         uniqid:   uniqid
     });
 
-    Object.defineProperties($s, {
+    augment($s, {
 
-        CLIP_LEFT: {
-            configurable: false,
-            enumerable:   true,
-            value:        1,
-            writable:     false
-        },
+        CLIP_RIGHT: 0x01,
+        CLIP_LEFT:  0x02,
+        CLIP_BOTH:  0x03, // CLIP_RIGHT | CLIP_LEFT
 
-        CLIP_RIGHT: {
-            configurable: false,
-            enumerable:   true,
-            value:        2,
-            writable:     false
-        },
+        PAD_RIGHT: 0x01,
+        PAD_LEFT:  0x02,
+        PAD_BOTH:  0x03  // PAD_RIGHT | PAD_LEFT
 
-        CLIP_BOTH: {
-            configurable: false,
-            enumerable:   true,
-            value:        3,
-            writable:     false
-        },
-
-        PAD_LEFT: {
-            configurable: false,
-            enumerable:   true,
-            value:        1,
-            writable:     false
-        },
-
-        PAD_RIGHT: {
-            configurable: false,
-            enumerable:   true,
-            value:        2,
-            writable:     false
-        },
-
-        PAD_BOTH: {
-            configurable: false,
-            enumerable:   true,
-            value:        3,
-            writable:     false
-        }
-
-    });
+    }, true);
 
     forIn(
         {
