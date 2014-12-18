@@ -170,6 +170,8 @@
                 source[name] = method;
             });
 
+            return source;
+
         };
 
     /**
@@ -196,10 +198,17 @@
      *  When attempting to create a bitmask, settings should be powers of 2 (1,
      *  2, 4, 8 ...). Writing the settings in hexadecimal literals can save
      *  mentally doubling a number all the time as the pattern is easy to
-     *  follow:
+     *  follow. Start with `1`, `2`, `4` and `8`:
      *
-     *      var dec = [   1,    2,    4,    8,   16,   32,   64,  128],
-     *          hex = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80]
+     *      [0x1, 0x2, 0x4, 0x8]; // [1, 2, 4, 8]
+     *
+     *  ... then add a `0` on the end for the next set:
+     *
+     *      [0x10, 0x20, 0x40, 0x80]; // [16, 32, 64, 128]
+     *
+     *  ... and just keep going:
+     *
+     *      [0x100, 0x200, 0x400, 0x800]; // [256, 512, 1024, 2048]
      *
      *  Settings can be combined using either a bitwise OR operator (`|`) or a
      *  plus operator (`+`) and decoded inside the object methods using
@@ -364,7 +373,7 @@
      *      $s.clip('abcdefg', 4, $s.CLIP_BOTH); // -> "bcde"
      *
      **/
-    function clip(string, maxLength, type) {
+    function clip(string, maxLength, bitmask) {
 
         var clipped = String(string),
             len     = clipped.length,
@@ -374,7 +383,7 @@
 
         if (len > maxLen) {
 
-            passed = $o.makeMaskCheck(+type || this.CLIP_RIGHT);
+            passed = $o.makeMaskCheck(+bitmask || this.CLIP_RIGHT);
 
             if (passed(this.CLIP_LEFT)) {
 
@@ -485,9 +494,40 @@
      *      o2.foo; // -> undefined
      *      'foo' in o2; // -> false
      *
-     *      var o3 = $o.clone(o1);
+     *      var o3 = $o.clone(o1, $o.CLONE_ENUM);
      *      o3.foo; // -> true
      *      'foo' in o3; // -> true
+     *
+     *  By default, DOM Nodes are referenced. To clone a DOM Node when cloning
+     *  the object, use the `$o.CLONE_NODE` setting. All children of a cloned
+     *  node are also cloned.
+     *
+     *      var div = document.createElement('div'),
+     *          o1  = {node: div},
+     *          o2  = $o.clone(o1),
+     *          o3  = $o.clone(o1, $o.CLONE_NODE);
+     *
+     *      o1.node === o2.node; // -> true
+     *      o1.node === o3.node; // -> false
+     *      o3.node.nodeName; // -> "DIV"
+     *
+     *  If the object contains a `$clone` method and the `$o.CLONE_INST` setting
+     *  is used, the `$clone` method is executed instead of copying the object.
+     *  This is mainly advantageous when creating a class using [[$c]]. There
+     *  are one or two caveats when copying an instance - see [[Class#$clone]]
+     *  for full details.
+     *
+     *      var Foo = $c.create({ init: function (name) {this.name = name;} });
+     *      var foo = new Foo('foo');
+     *      foo.name; // -> "foo"
+     *      
+     *      var o1 = {inst: foo},
+     *          o2 = $o.clone(o1),
+     *          o3 = $o.clone(o1, $o.CLONE_INST);
+     *
+     *      o1.inst === o2.inst; // -> true
+     *      o1.inst === o3.inst; // -> false
+     *      o3.inst.name; // -> "foo"
      * 
      *  As mentioned, the bitmask can be fully defined using the bitwise OR
      *  operator `|`. Here is the code to clone an object deeply, copy the
@@ -502,13 +542,16 @@
         var passed = this.makeMaskCheck(+bitmask || 0),
             isDeep = passed(this.CLONE_DEEP),
             isDesc = passed(this.CLONE_DESC),
+            isNode = passed(this.CLONE_NODE),
+            isInst = passed(this.CLONE_INST),
             copy   = {},
             method = passed(this.CLONE_ENUM) ? 'getOwnPropertyNames' : 'keys';
 
         Object[method](object).forEach(function (key) {
 
-            var value = object[key],
-                desc  = isDesc ?
+            var value  = object[key],
+                isElem = value instanceof HTMLElement,
+                desc   = isDesc ?
                     Object.getOwnPropertyDescriptor(object, key) :
                     {
                         configurable: true,
@@ -517,16 +560,73 @@
                         writable:     true
                     };
 
-            if (isDeep && value && typeof value === 'object' &&
-                    !(value instanceof HTMLElement)) {
-                desc.value = this.clone(value, bitmask);
+            if (isDeep) {
+
+                if (Array.isArray(value)) {
+                    value = value.concat();
+                } else if (value && typeof value === 'object' && !isElem) {
+                    value = this.clone(value, bitmask);
+                }
+
+            } else if (isNode && isElem) {
+                value = value.cloneNode(true);
             }
+
+            desc.value = value;
 
             Object.defineProperty(copy, key, desc);
 
         }, this);
 
         return copy;
+
+    }
+
+    /** relates to: $o.clone
+     *  Class#$clone() -> Class
+     *
+     *  Creates a copy of the instance, taking the original constructor and
+     *  creating a new version based on the arguments and settings of the
+     *  current class.
+     *
+     *      var Foo = $c.create({
+     *          init: function (name) {
+     *              this.name = name;
+     *          }
+     *      });
+     *      var foo = new Foo('foo');
+     *      foo.thingy = true;
+     *
+     *      var clone = foo.$clone();
+     *      clone instanceof Foo; // -> true
+     *      clone.name; // -> "foo"
+     *      clone.thingy; // -> true
+     *
+     *  Be aware that this is not a live link. Once a clone has been made,
+     *  altering the original will not alter the clone.
+     *
+     *      foo.newThing = 'really new';
+     *      foo.newThing; // -> "really new"
+     *      clone.newThing; // -> undefined
+     *
+     *  This method exists to aid [[$o.clone]] when the `$o.CLONE_INST` setting
+     *  is passed.
+     **/
+    function cloneInstance(args) {
+
+        return function () {
+
+            var Const = this.constructor;
+
+            function Class(args) {
+                return Const.apply(this, args);
+            }
+
+            Class.prototype = Const.prototype;
+
+            return augment(new Class(args), this);
+
+        }
 
     }
 
@@ -620,7 +720,18 @@
         // Base function for the new class. All new classes push everything into
         // an init method.
         function F() {
-            return this.init.apply(this, arguments);
+
+            var args = arguments;
+
+            Object.defineProperty(this, '$clone', {
+                configurable: true,
+                enumerable:   false,
+                value:        cloneInstance(args),
+                writable:     true
+            });
+
+            return this.init.apply(this, args);
+
         }
 
         // Allow the Base to be optional.
@@ -1382,7 +1493,7 @@
      *      $s.pad('abcde', 10, '-', $s.PAD_BOTH); // -> "--abcde---"
      *
      **/
-    function pad(string, minLength, padding, type) {
+    function pad(string, minLength, padding, bitmask) {
 
         var str     = String(string),
             dif     = $n.toPosInt(minLength) - str.length,
@@ -1400,7 +1511,7 @@
 
         if (dif > 0) {
 
-            passed  = $o.makeMaskCheck(+type || this.PAD_RIGHT);
+            passed  = $o.makeMaskCheck(+bitmask || this.PAD_RIGHT);
             isLeft  = passed(this.PAD_LEFT);
             isRight = passed(this.PAD_RIGHT);
 
@@ -2131,9 +2242,11 @@
     });
 
     augment($o, {
-        CLONE_DEEP: 0x01,
-        CLONE_DESC: 0x02,
-        CLONE_ENUM: 0x04
+        CLONE_DEEP: 0x1,
+        CLONE_DESC: 0x2,
+        CLONE_ENUM: 0x4,
+        CLONE_NODE: 0x8,
+        CLONE_INST: 0x10
     }, true);
 
     augment($s, {
@@ -2147,13 +2260,13 @@
 
     augment($s, {
 
-        CLIP_RIGHT: 0x01,
-        CLIP_LEFT:  0x02,
-        CLIP_BOTH:  0x03, // CLIP_RIGHT | CLIP_LEFT
+        CLIP_RIGHT: 0x1,
+        CLIP_LEFT:  0x2,
+        CLIP_BOTH:  0x3, // CLIP_RIGHT | CLIP_LEFT
 
-        PAD_RIGHT: 0x01,
-        PAD_LEFT:  0x02,
-        PAD_BOTH:  0x03  // PAD_RIGHT | PAD_LEFT
+        PAD_RIGHT: 0x1,
+        PAD_LEFT:  0x2,
+        PAD_BOTH:  0x3  // PAD_RIGHT | PAD_LEFT
 
     }, true);
 

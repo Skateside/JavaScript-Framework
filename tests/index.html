@@ -857,6 +857,38 @@
 
         });
 
+        it('should allow classes to be cloned', function (assert) {
+
+            var clone1 = foo.$clone(),
+                clone2 = bar.$clone();
+
+            var Inner = $c.create(Foo, {
+
+                init: function (name, name2) {
+
+                    this.$super(name);
+                    this.name2 = name2;
+
+                }
+
+            });
+
+            var inner = new Inner('inner', 'inner2'),
+                clone3 = inner.$clone();
+
+            assert.isNotSame(foo, clone1);
+            assert.isSame(foo.name, clone1.name);
+
+            assert.isNotSame(bar, clone2);
+            assert.isSame(bar.name, clone2.name);
+            assert.isSame(bar.type, clone2.type);
+
+            assert.isNotSame(inner, clone3);
+            assert.isSame(inner.name, clone3.name);
+            assert.isSame(inner.name2, clone3.name2);
+
+        });
+
     });
 
     // $f.debounce(func[, wait = 100]) -> Function
@@ -1177,6 +1209,33 @@
 
         });
 
+        it('should correctly copy arrays, even deeply', function (assert) {
+
+            var o1 = {arr: [1, 2, 3], foo: {bar: [4, 5, 6]}},
+                o2 = $o.clone(o1),
+                o3 = $o.clone(o1, $o.CLONE_DEEP),
+                ex = {arr: [1, 2, 3], foo: {bar: [4, 5, 6]}};
+
+            assert.isTrue(Array.isArray(o2.arr));
+            assert.isTrue(Array.isArray(o2.foo.bar));
+            assert.isTrue(Array.isArray(o3.arr));
+            assert.isTrue(Array.isArray(o3.foo.bar));
+
+            assert.isSimilar(o2.arr, ex.arr);
+            assert.isSimilar(o2.foo.bar, ex.foo.bar);
+            assert.isSimilar(o3.arr, ex.arr);
+            assert.isSimilar(o3.foo.bar, ex.foo.bar);
+
+            o1.arr[2] = 8;
+            o1.foo.bar[2] = 9;
+
+            assert.isNotSimilar(o2.arr, ex.arr);
+            assert.isNotSimilar(o2.foo.bar, ex.foo.bar);
+            assert.isSimilar(o3.arr, ex.arr);
+            assert.isSimilar(o3.foo.bar, ex.foo.bar);
+
+        });
+
         it('should copy property descriptors if requested', function (assert) {
 
             var o1 = {};
@@ -1228,6 +1287,31 @@
 
             assert.isFalse('foo' in o2);
             assert.isTrue('foo' in o3);
+
+        });
+
+        it('should allow DOM nodes (and children) to be cloned, if requested', function (assert) {
+
+            var div  = document.createElement('div'),
+                span = document.createElement('span'),
+                o1   = {node: div},
+                o2   = null,
+                o3   = null;
+
+            div.appendChild(span);
+
+            o2 = $o.clone(o1);
+            o3 = $o.clone(o1, $o.CLONE_NODE);
+
+            assert.isTrue(o2.node instanceof HTMLElement);
+            assert.isTrue(o2.node.children[0] instanceof HTMLElement);
+            assert.isTrue(o3.node instanceof HTMLElement);
+            assert.isTrue(o3.node.children[0] instanceof HTMLElement);
+
+            assert.isSame(o1.node, o2.node);
+            assert.isSame(o1.node.children[0], o2.node.children[0]);
+            assert.isNotSame(o1.node, o3.node);
+            assert.isNotSame(o1.node.children[0], o3.node.children[0]);
 
         });
 
