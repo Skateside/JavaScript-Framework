@@ -126,6 +126,7 @@ var Sandbox = function () {
 
 Sandbox.prototype = {
 
+    // Hmm ... how would the settings get passed into the constructor?
     init: function (settings) {
 
         this.dom = new Dom(settings.parent);
@@ -184,11 +185,14 @@ function ucfirst(string) {
 
 function createError(name, BaseError) {
 
-    window[name] = function (message) {
+    App[name] = function (message) {
+
+        this.name    = name;
         this.message = message || '';
+
     }
 
-    window[name].prototype = Object.create((BaseError || Error).prototype);
+    App[name].prototype = Object.create((BaseError || Error).prototype);
 
 }
 
@@ -196,7 +200,7 @@ createError('AppError');
 
 ['fatal', 'warning', 'notice', 'depreciated'].forEach(function (severity, i) {
 
-    createError(ucfirst(severity) + 'Error', AppError);
+    createError(ucfirst(severity) + 'Error', App.AppError);
 
     Sandbox.prototype[severity] = function (message) {
         return this.error(message, severity);
@@ -227,9 +231,30 @@ App.prototype = {
     },
 
     register: function (name, factory) {
+
+        if (this.modules[name]) {
+            this.fatal('Module "' + name + '" already registered');
+        } else {
+
+            this.modules[name] = {
+                creator:  factory,
+                instance: null
+            };
+
+        }
+
     },
 
     start: function (module) {
+
+        var ref = this.modules[module];
+
+        if (!ref) {
+            this.fatal('Unrecognised module "' + module + '"');
+        } else if (ref.instance) {
+            ref.instance = ref.creator(new Sandbox());
+        }
+
     },
 
     stop: function (module) {
