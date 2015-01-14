@@ -54,9 +54,10 @@
          *  $f.identity(o) -> ?
          *  - o (?): Any variable
          *
-         *  An (identity function)[http://en.wikipedia.org/wiki/Identity_function]
-         *  or one that simply returns whatever it's given. This is primarily
-         *  used as a fallback for optional function calls.
+         *  An (identity 
+         *  function)[http://en.wikipedia.org/wiki/Identity_function] or one
+         *  that simply returns whatever it's given. This is primarily used as a
+         *  fallback for optional function calls.
          **/
         identity = function (o) {
             return o;
@@ -357,7 +358,7 @@
      *  - `$s.CLIP_RIGHT` removes characters from the right (default action).
      *  - `$s.CLIP_LEFT` removes characters from the left.
      *  - `$s.CLIP_BOTH` removes characters from both sides (short-cut for
-     *    `$s.CLIP_RIGHT | $s.CLIP_LEFT`.
+     *    `$s.CLIP_RIGHT | $s.CLIP_LEFT`).
      *
      *  Although it is possible to pass in numbers as opposed to constants, the
      *  constants are guarenteed to work no matter what upgrades may take place.

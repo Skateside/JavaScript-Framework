@@ -118,7 +118,8 @@ var Core = (function () {
          *  severity.
          *
          *      Core.error();
-         *      // throws Error("An unknown error occurred (Severity: 3 notice)");
+         *      // throws 
+         *      //      Error("An unknown error occurred (Severity: 3 notice)");
          *
          *      Core.error('Test');
          *      // throws Error("Test (Severity: 3 notice)");
@@ -649,8 +650,8 @@ var Core = (function () {
 
             if (this.hasConfig(key)) {
 
-                this.warning('Core.setConfig() key ' + key + ' is already set, ' +
-                        'not modifying');
+                this.warning('Core.setConfig() key ' + key + ' is already ' +
+                        'set, not modifying');
 
             } else {
                 config[key] = value;

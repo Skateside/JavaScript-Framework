@@ -252,7 +252,10 @@ App.prototype = {
         if (!ref) {
             this.fatal('Unrecognised module "' + module + '"');
         } else if (ref.instance) {
+
             ref.instance = ref.creator(new Sandbox());
+            ref.instance.init();
+
         }
 
     },
@@ -275,52 +278,101 @@ App.prototype = {
 
 var app = new App();
 
-/*app.register('validator', function (sandbox) {
+app.addHelper('WeakMap', function (sandbox) {
 
-    var methods = {
+    var string = sandbox.getHelper('string');
 
-        required: {
-            test: function (value, input) {
-                return value.trim() !== '';
+    var WeakMap = window.WeakMap;
+
+    if (!WeakMap) {
+
+        WeakMap = sandbox.getHelper('class').create({
+
+            init: function () {
+
+                this._reference = string.uniqid('App-WeakMap-reference-');
+
             },
-            msg: 'Field is required'
-        }
 
-    };
+            _isValid: function (key) {
+                return key instanceof HTMLElement;
+            },
+
+            set: function (key, value) {
+
+                Object.defineProperty(key, this._reference, {
+                    configurable: true,
+                    enumerable:   false,
+                    value:        value,
+                    writable:     true
+                });
+
+            },
+
+            get: function (key) {
+                return key[this._reference];
+            },
+
+            has: function (key) {
+                return this._reference in key;
+            },
+
+            delete: function (key) {
+                delete key[this._reference];
+            }
+
+        });
 
     return {
 
-        init: function () {
-
-
-
-        },
-
-        destroy: function () {
+        create: function () {
+            return new WeakMap();
         }
-
-    };
-
-});*/
-
-// Pseudo-code
-app.register('search', function (sandbox) {
-
-    return {
-
-        init: function () {
-
-            // on input, perform AJAX to get suggestions.
-
-        },
-
-        destroy: function () {
-
-        }
-
 
     };
 
 });
 
+app.register('Select', function (sandbox) {
 
+    var Select = sandbox.createClass({}),
+        map = new sandbox.WeakMap();
+
+    //map = new sandbox.getHelper('WeakMap');
+    //map = sandbox.getHelper('WeakMap').create();
+
+    return {
+
+        init: function () {
+
+            sandbox.
+                dom.
+                children(document, '.js-select').
+                forEach(function (elem) {
+
+                    var select = new Select(elem);
+
+                    map.set(elem, select);
+
+                });
+
+        },
+
+        destroy: {
+
+            sandbox.
+                dom.
+                children(document, '.js-select').
+                forEach(function (elem) {
+
+                    if (map.has(elem)) {
+                        map.get(elem).destroy();
+                    }
+
+                 });
+
+        }
+
+    };
+
+});
