@@ -12,6 +12,12 @@ Core.extend('dom', function (Core) {
         // Dummy element for testing DOM methods.
         dummy  = document.createElement('div'),
 
+        // Store for events that need dispatching.
+        eventStore = {},
+
+        // Element that will fire events, wrapping event dispatching.
+        eventElem = document.createElement('div'),
+
         // Objects for adding methods to the main object.
         select  = null,
         core    = null,
@@ -23,7 +29,39 @@ Core.extend('dom', function (Core) {
             return this.get(selector).indexOf(elem) > -1;
         },
 
+        // WeakMap used for storing data on elements.
         dataMap = Core.get('WeakMap').weak();
+
+    // Add the event listener that will exevure the stored event.
+    eventElem.addEventListener('CoreFrameworkDispatch', function (e) {
+
+        var event = eventStore[e.detail.type];
+
+        event.handler.call(event.contact, event.event);
+
+    }, false);
+
+    // Dispatches a single event, wrapped in a "CoreFrameworkDispatch" event to
+    // allow all events to execute even if one of them throws an Error.
+    function dispatch(type, event, handler, context) {
+
+        var custom = new CustomEvent('CoreFrameworkDispatch', {
+            bubbles:    false,
+            cancelable: false,
+            detail:     {
+                type: type
+            }
+        });
+
+        eventStore[type] = {
+            context: context,
+            event:   event,
+            handler: handler
+        };
+
+        eventElem.dispatchEvent(custom);
+
+    }
 
     /**
      *  dom.Selecting
@@ -1577,8 +1615,6 @@ Core.extend('dom', function (Core) {
 
         on: function (elem, type, handler, context) {
 
-            // pseudo code ...
-            /*
             var that   = this,
                 events = that.getData(elem, '_events'),
                 exists = $a.isArray(events[type]),
@@ -1590,30 +1626,53 @@ Core.extend('dom', function (Core) {
                 handler: handler // delegated version
             });
 
+            events[type] = list;
+            that.setData(elem, '_events', events);
+
             if (!exists) {
 
                 event.addEventListener(type, function (e) {
 
-                    var events = that.getData(elem, '_events'),
-                        list   = $a.pluck(events[type] || [], 'handler');
+                    var events = that.getData(elem, '_events')[type] || [],
+                        i      = 0,
+                        il     = events.length,
+                        event  = null;
 
-                    // should guard against a list item throwing an error ...
+                    while (i < il) {
 
-                }, false); // false should be some kind of lookup
+                        event = events[i];
+                        i += 1;
+                        dispatch(type, e, event.handler, event.context);
+
+                    }
+
+                    delete eventStore[type];
+
+                }, false); 
 
             }
-            //*/
-            // ... end of pseudo code
 
         },
 
         off: function (elem, type, handler) {
 
-            // psuedo code ...
+            var data   = this.getData(elem, '_events'),
+                events = data[type] || [],
+                i      = 0,
+                il     = events.length;
 
-            
+            while (i < il) {
 
-            // ... end of pseudo code
+                if (events[i].orig === handler) {
+                    delete events[i];
+                }
+
+                i += 1;
+
+            }
+
+            data[type] = $a.compact(events);
+            this.setData(elem, '_events', events);
 
         },
 
