@@ -1677,9 +1677,26 @@ Core.extend('dom', function (Core) {
         },
 
         one: function (elem, type, handler, context) {
+
+            var that = this,
+                func = function (e) {
+
+                    handler.call(this, e);
+                    that.off(elem, type, func);
+
+                };
+
+            that.on(elem, type, func, handler);
+
         },
 
-        fire: function (elem, type) {
+        fire: function (elem, type, data) {
+
+            var info   = data ? {detail: data} : undefined,
+                custom = new CustomEvent(type, info);
+
+            elem.dispatchEvent(custom);
+
         }
 
     });

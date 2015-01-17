@@ -1608,7 +1608,8 @@
     }
 
     /**
-     *  $a.pluck(array, property[, value]) -> Array|Object
+     *  $a.pluck(array, property) -> Array
+     *  $a.pluck(array, property, value) -> Object
      *  - array (Array): Array to iterate over.
      *  - property (String): Property to retrieve.
      *  - value (String): Property name.
