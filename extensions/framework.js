@@ -571,6 +571,8 @@
 
             } else if (isNode && isElem) {
                 value = value.cloneNode(true);
+            } else if (isInst && typeof value.$clone === 'function') {
+                value = value.$clone();
             }
 
             desc.value = value;
@@ -714,13 +716,9 @@
      **/
     function createClass(Base, proto) {
 
-        // Empty function so a constructor function isn't called when
-        // inheriting.
-        var B = noop;
-
         // Base function for the new class. All new classes push everything into
         // an init method.
-        function F() {
+        function Class() {
 
             var args = arguments;
 
@@ -745,7 +743,7 @@
 
         // Expose a prototype extension method that enables the $super magic
         // method.
-        augment(F, {
+        augment(Class, {
             addMethod:  addMethod,
             addMethods: addMethods,
             extend:     extendClass,
@@ -753,22 +751,21 @@
         });
 
         // Inherit from Base.
-        B.prototype = Base.prototype;
-        F.prototype = new B();
+        Class.prototype = Object.create(Base.prototype);
 
         // Add all methods to the new prototype.
-        addMethods.call(F, proto);
+        addMethods.call(Class, proto);
 
         // Basic constructor hack.
-        F.prototype.constructor = F;
+        Class.prototype.constructor = Class;
 
         // Allow a class to me made without a constructor function.
-        if (typeof F.prototype.init !== 'function') {
-            F.prototype.init = noop;
+        if (typeof Class.prototype.init !== 'function') {
+            Class.prototype.init = noop;
         }
 
         // Return the constructor.
-        return F;
+        return Class;
 
     }
 
@@ -1533,54 +1530,6 @@
     }
 
     /**
-     *  $f.partial(func) -> Function
-     *  - func (Function): Original function to curry.
-     * 
-     *  Allows for function currying. Each argument after the first one is
-     *  passed to the function (first argument). Any instances of `undefined`
-     *  will be replaced with arguments passed to the function at run time.
-     *  Additional arguments passed to the function will still be passed.
-     *
-     *      function add(a, b) {
-     *          return a + b;
-     *      }
-     *
-     *      var add5 = $f.partial(add, undefined, 5);
-     *      add5(5); // -> 10
-     *      add5(6, 7); // -> 11 (the 7 is overridden by the 5 from partial
-     * 
-     **/
-    /*function partial(func) {
-
-        var args = $a.slice(arguments, 1),
-            len  = args.length;
-
-        return function () {
-
-            var arg = 0,
-                i   = 0,
-                il  = arguments.length;
-
-            while (i < len && arg < il) {
-
-                if (args[i] === undefined) {
-
-                    args[i] = arguments[i];
-                    arg += 1;
-
-                }
-
-                i += 1;
-
-            }
-
-            return func.apply(this, args);
-
-        };
-
-    }*/
-
-    /**
      *  $a.partition(array, handler[, context]) -> Array
      *  - array (Array): Array to partition.
      *  - handler (Function): Function to partition the array.
@@ -1706,8 +1655,8 @@
      *  $a.shuffle(array) -> Array
      *  - array (Array): Array to shuffle.
      *
-     *  Shuffles the entries of an array or array-like object. The original array
-     *  remains unchanged. The shuffling algorythm is the [Fisher-Yates
+     *  Shuffles the entries of an array or array-like object. The original
+     *  array remains unchanged. The shuffling algorythm is the [Fisher-Yates
      *  Shuffle](http://bost.ocks.org/mike/shuffle/).
      *
      *      var array = [1, 2, 3, 4, 5, 6, 7];
@@ -2220,7 +2169,6 @@
         lock:         lock,
         makeConstant: makeConstant,
         noop:         noop,
-        //partial:      partial,
         throttle:     throttle
     });
 

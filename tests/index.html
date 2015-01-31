@@ -962,28 +962,6 @@
 
     });
 
-    // $f.partial(func) -> Function
-    // Doesn't work the way I expect - and I wrote the thing! Don't think it's
-    // all that useful either.
-    /*TEST('$f.partial', function (it) {
-
-        var add = function (a, b) {
-                return a + b;
-            },
-
-            add5 = $f.partial(add, 5),
-            add6 = $f.partial(add, undefined, 6);
-
-        it('should allow arguments to be preset', function (assert) {
-            assert.isSame(add5('ignored', 5), 10);
-        });
-
-        it('should replace undefined preset arguments', function (assert) {
-            assert.isSame(add6(5), 11);
-        });
-
-    });*/
-
     // $f.throttle(func[, wait = 100]) -> Function
     TEST('$f.throttle', function (it) {
 
@@ -992,7 +970,7 @@
 
     });
 
-
+    // $n.isNumeric(o) -> Boolean
     TEST('$n.isNumeric', function (it) {
 
         it('should return true for all number literals', function (assert) {
@@ -1349,6 +1327,25 @@
             assert.isNotSame(o1.foo, o2.foo);
             assert.isNotSame(o1.foo, o3.foo);
             assert.isSame(o1.foo, o4.foo);
+
+        });
+
+        it('should allow instances to be cloned', function (assert) {
+
+            var Foo = $c.create({
+                    init: function (foo) {
+                        this.foo = foo;
+                    }
+                }),
+                foo = new Foo(1),
+                obj = {foo: foo},
+
+                clone1 = $o.clone(obj),
+                clone2 = $o.clone(obj, $o.CLONE_INST);
+
+            assert.isSame(obj.foo, clone1.foo);
+            assert.isNotSame(obj.foo, clone2.foo);
+            assert.isSimilar(clone1.foo, clone2.foo);
 
         });
 
