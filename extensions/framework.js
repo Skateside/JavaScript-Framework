@@ -47,6 +47,9 @@
          */
         $c = {},
 
+        // Context constructor, created lower down.
+        Context = null,
+
         // Template constructor, created lower down.
         Template = null,
 
@@ -141,6 +144,41 @@
         // Original seed used for the uniqid function.
         origSeed = 123456789 + Math.floor(Math.random() * Date.now()),
 
+        // Create local variable as it may need to be overridden.
+        CustomEvent = typeof window.CustomEvent === 'function' ?
+                window.CustomEvent :
+                (function () {
+
+                    // Polyfill for CustomEvent in IE9 and IE10.
+                    // https://developer.mozilla.org/en/docs/Web/API/CustomEvent
+                    var CustomEvent = function (event, params) {
+
+                        var evt  = document.createEvent('CustomEvent'),
+                            info = params || {
+                                bubbles:    false,
+                                cancelable: false,
+                                detail:     undefined
+                            };
+
+                        evt.initCustomEvent(
+                            event,
+                            info.bubbles,
+                            info.cancelable,
+                            info.detail
+                        );
+
+                        return evt;
+
+                    };
+
+                    CustomEvent.prototype = Object.create(
+                        window.Event.prototype
+                    );
+
+                    return CustomEvent;
+
+                }()),
+
         // Less powerful that $o.each but necessary for creating this file.
         forIn = function (obj, handler, context) {
 
@@ -174,6 +212,8 @@
             return source;
 
         };
+
+
 
     /**
      *  $o.addConfig(object, settings)
@@ -898,6 +938,24 @@
      **/
     function every(array, handler, context) {
         return Array.prototype.every.call(array, handler, context);
+    }
+
+    /** related to $a.Context
+     *  $a.exec(array[, context[, args]])
+     *  - array (Array): List of functions to execute.
+     *  - context (Object): Context for the functions.
+     *  - args (Array): Arguments to pass to the functions.
+     *
+     *  Executes a list of functions in their own execution context. See
+     *  [[$a.Context]] for more information
+     **/
+    function exec(array, context, args) {
+
+        var con = new Context(array, context, args);
+
+        con.run();
+        con.free();
+
     }
 
     /**
@@ -1922,6 +1980,217 @@
 
     }
 
+    /** related to $a.exec
+     *  class $a.Context
+     *
+     *  Creates an individual execution context for each function in a given
+     *  array of functions. This allows one function in the chain to throw an
+     *  `Error` without disrupting the others or preventing them from executing.
+     *  The system works by listening for a [[$a.Context#name]] event firing on
+     *  the [[$a.Context#dummy]] element. When the event fires, the listener
+     *  executes the function stored in [[$a.Context#handler]] (within the
+     *  context of [[$a.Context#context]] and passing in [[$a.Context#args]]).
+     *
+     *  To better understand this, consider an example. Assume that this exists:
+     *
+     *      function log(text, isError) {
+     *          document.body.innerHTML += (isError ?
+     *              '<p style="color:red;">' : '<p>') + text + '</p>';
+     *      }
+     *
+     *      window.onerror = function (msg) {
+     *          log(msg, true);
+     *      };
+     *
+     *  Now consider this array of functions:
+     *
+     *      var funcs = [
+     *          function () {
+     *              log('one');
+     *              NOT_REAL++;
+     *          },
+     *          function () {
+     *              log('two');
+     *          }
+     *      ];
+     *
+     *  Executing the functions in a loop will create a response live this:
+     *
+     *      for (var i = 0, il = funcs.length; i < il; i += 1) {
+     *          funcs[i]();
+     *      }
+     *      // Generates:
+     *      // <p>One</p>
+     *      // <p style="color:red;">ReferenceError: NOT_REAL is not defined</p>
+     *
+     *  The execution stopped on the first error and the second function was
+     *  never executed. Wrapping the functions in a "try/catch" block can
+     *  generate a response like this:
+     *
+     *      for (var i = 0, il = funcs.length; i < il; i += 1) {
+     *          try {
+     *              funcs[i]();
+     *          } catch (ignore) {}
+     *      }
+     *      // Generates:
+     *      // <p>One</p>
+     *      // <p>Two</p>
+     *
+     *  Both functions were executed but the error was not seen. This can have
+     *  knock-on effects because of the error.
+     *
+     *  Now consider using [[$a.exec]] (short-hand for creating and running
+     *  [[$a.Context]]):
+     *
+     *      $a.exec(funcs);
+     *      // Generates:
+     *      // <p>One</p>
+     *      // <p style="color:red;">ReferenceError: NOT_REAL is not defined</p>
+     *      // <p>Two</p>
+     *
+     *  The error was displayed and both functions correctly executed. This
+     *  allows errors to be spotted and correctly handled.
+     * 
+     *  The process is based on [Callbacks vs
+     *  Events](http://dean.edwards.name/weblog/2009/03/callbacks-vs-events/) by
+     *  Dean Edwards.
+     **/
+    Context = createClass({
+
+        /**
+         *  new $a.Context(array[, context[, args]])
+         *  - array (Array): Array of functions to execute.
+         *  - context (Object): Context for the functions.
+         *  - args (Array): Arguments for the functions.
+         **/
+        init: function (array, context, args) {
+
+            /**
+             *  $a.Context#dummy -> Element
+             *
+             *  Element that will listen for [[$a.Context#name]] events.
+             **/
+            this.dummy = document.createElement('div');
+
+            /**
+             *  $a.Context#name -> String
+             *
+             *  Name of the custom event to use.
+             **/
+            this.name = 'dispatch';
+
+            /**
+             *  $a.Context#list -> Array
+             *
+             *  List of functions to execute.
+             **/
+            this.list = array;
+
+            /**
+             *  $a.Context#context -> Object|undefined
+             *
+             *  Context for the functions. If no `context` argument was passed
+             *  to [[new $a.Context]], this will be `undefined`.
+             **/
+            this.context = context;
+
+            /**
+             *  $a.Context#args -> Array
+             *
+             *  Any arguments to pass to the functions when they execute.
+             **/
+            this.args = args || [];
+
+            this.dummy.addEventListener(this.name, this.execute.bind(this));
+
+        },
+
+        /**
+         *  $a.Context#execute()
+         *
+         *  Executes the current handler (stored in [[$a.Context#handler]]).
+         *  This method is the only place that interacts with
+         *  [[$a.Context#handler]] (although it is set and subsequently
+         *  nullified in [[$a.Context#dispatch]]) so configuring a sub-class of
+         *  [[$a.Context]] to handle something other than a simple array of
+         *  functions usually just means overriding this method.
+         **/
+        execute: function () {
+
+            var handler = this.handler;
+
+            if (typeof handler === 'function') {
+                handler.apply(this.context, this.args);
+            }
+
+        },
+
+        /**
+         *  $a.Context#dispatch(handler)
+         *  - handler (Function): Handler to execute.
+         *
+         *  Dispatches the handler by firing a custom event on
+         *  [[$a.Context#dummy]].
+         **/
+        dispatch: function (handler) {
+
+            /**
+             *  $a.Context#handler -> Function|null
+             *
+             *  Entry in [[$a.Context#list]] that should be executed. It is
+             *  reset to `null` once it has been executed, ready for the next
+             *  call to [[$a.Context#dispatch]]. Executing
+             *  [[$a.Context#handler]] is done exclusively through
+             *  [[$a.Context#execute]] so it can be easily modified for
+             *  [[$a.Context#handler]] to contain something other than a
+             *  function.
+             **/
+            this.handler = handler;
+
+            this.dummy.dispatchEvent(new CustomEvent(this.name));
+            this.handler = null;
+
+        },
+
+        /**
+         *  $a.Context#run()
+         *
+         *  Loops through the stored handlers and dispatches them in turn.
+         **/
+        run: function () {
+
+            var list = this.list,
+                i    = 0,
+                il   = list.length;
+
+            while (i < il) {
+
+                this.dispatch(list[i]);
+                i += 1;
+
+            }
+
+        },
+
+        /**
+         *  $a.Context#free()
+         *
+         *  Deletes all stored properties to allow the memory allocated to be
+         *  freed up during garbage collection.
+         **/
+        free: function () {
+
+            delete this.dummy;
+            delete this.name;
+            delete this.list;
+            delete this.context;
+            delete this.args;
+            delete this.handler;
+
+        }
+
+    });
+
     /** related to $s.supplant
      *  class $s.Template
      * 
@@ -2139,7 +2408,9 @@
     augment($a, {
         chunk:       chunk,
         compact:     compact,
+        Context:     Context,
         every:       every,
+        exec:        exec.
         filter:      filter,
         first:       first,
         forEach:     forEach,

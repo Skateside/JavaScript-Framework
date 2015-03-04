@@ -30,7 +30,11 @@ Core.extend('dom', function (Core) {
         },
 
         // WeakMap used for storing data on elements.
-        dataMap = Core.get('WeakMap').weak();
+        dataMap = Core.get('WeakMap').weak(),
+
+        // Randomly generated string to help prevent the events being
+        // acciently overridden by the user.
+        eventKey = Core.get('string').uniqid('CoreFrameworkEvents-');
 
     // Add the event listener that will exevure the stored event.
     eventElem.addEventListener('CoreFrameworkDispatch', function (e) {
@@ -1543,7 +1547,7 @@ Core.extend('dom', function (Core) {
         },
 
         /**
-         *  dom.getData(elem, key) -> *
+         *  dom.getData(elem[, key]) -> *
          *  - elem (Element): Element whose data should be accessed.
          *  - key (String): Key for the data.
          *
@@ -1555,9 +1559,17 @@ Core.extend('dom', function (Core) {
          *      dom.setData(div, 'foo', 12345);
          *      dom.getData(div, 'foo'); // -> 12345
          *
+         *  If no `key` is given, a copy of the data is returned.
+         *
+         *      dom.getData(div); // -> {foo: 12345}
+         *
          **/
         getData: function (elem, key) {
-            return data = this._getData(elem)[key];
+
+            var data = this._getData(elem);
+
+            return typeof key === 'string' ? data[key] : $o.clone(data);
+        
         },
 
         /**
@@ -1613,27 +1625,39 @@ Core.extend('dom', function (Core) {
 
     extend({
 
-        on: function (elem, type, handler, context) {
+        on: function (elem, type, selector, handler, context) {
 
             var that   = this,
-                events = that.getData(elem, '_events'),
+                events = that.getData(elem, eventKey),
                 exists = $a.isArray(events[type]),
                 list   = events[type] || [];
 
+            if (typeof selector === 'function') {
+
+                context  = handler;
+                handler  = selector;
+                selector = '*';
+
+            }
+
             list.push({
-                orig: handler,
+                orig:    handler,
                 context: context || elem,
-                handler: handler // delegated version
+                handler: function (e) {
+                    if (that.is(e.target, selector)) {
+                        handler.apply(this, arguments);
+                    }
+                }
             });
 
             events[type] = list;
-            that.setData(elem, '_events', events);
+            that.setData(elem, eventKey, events);
 
             if (!exists) {
 
                 event.addEventListener(type, function (e) {
 
-                    var events = that.getData(elem, '_events')[type] || [],
+                    var events = that.getData(elem, eventKey)[type] || [],
                         i      = 0,
                         il     = events.length,
                         event  = null;
@@ -1656,7 +1680,7 @@ Core.extend('dom', function (Core) {
 
         off: function (elem, type, handler) {
 
-            var data   = this.getData(elem, '_events'),
+            var data   = this.getData(elem, eventKey),
                 events = data[type] || [],
                 i      = 0,
                 il     = events.length;
@@ -1672,7 +1696,7 @@ Core.extend('dom', function (Core) {
             }
 
             data[type] = $a.compact(events);
-            this.setData(elem, '_events', events);
+            this.setData(elem, eventKey, events);
 
         },
 
