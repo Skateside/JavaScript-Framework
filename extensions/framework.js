@@ -13,6 +13,13 @@
     var $a = {},
 
         /**
+         *  $c -> Extension
+         *
+         *  Collection of functions designed to aid creation of "Classes".
+         */
+        $c = {},
+
+        /**
          *  $f -> Extension
          *
          *  Collection of functions designed to aid manipulation of `Function`s.
@@ -39,13 +46,6 @@
          *  Collection of functions designed to aid manipulation of `String`s.
          **/
         $s = {},
-
-        /**
-         *  $c -> Extension
-         *
-         *  Collection of functions designed to aid creation of "Classes".
-         */
-        $c = {},
 
         // Context constructor, created lower down.
         Context = null,
@@ -186,7 +186,7 @@
                 owns = Object.prototype.hasOwnProperty.bind(obj);
 
             for (prop in obj) {
-                if(owns(prop)) {
+                if (owns(prop)) {
                     handler.call(context, prop, obj[prop]);
                 }
             }
@@ -362,7 +362,7 @@
         var arrays = [],
             i      = 0,
             il     = array.length,
-            amount = Math.max(size, 1) || 1;
+            amount = Math.max($n.toNumber(size, 1), 1);
 
         if (typeof modifier === 'function') {
             array = this.map(array, modifier, context);
@@ -380,7 +380,7 @@
     }
 
     /**
-     *  $s.clip(string, maxLength, bitmask = $s.CLIP_RIGHT) -> String
+     *  $s.clip(string, maxLength[, bitmask = $s.CLIP_RIGHT]) -> String
      *  - string (String): String to clip.
      *  - maxLength (Number): Maximum length of the string.
      *  - bitmask (Number): Type of clipping.
@@ -407,7 +407,7 @@
      *      $s.clip('abcdefg', 5, $s.CLIP_LEFT);  // -> "cdefg"
      *      $s.clip('abcdefg', 5, $s.CLIP_BOTH);  // -> "bcdef"
      *
-     *  If an qual number of characters cannot be removed from the left and
+     *  If an equal number of characters cannot be removed from the left and
      *  right when using `$s.CLIP_BOTH`, the additional character is removed
      *  from the right.
      *
@@ -424,7 +424,7 @@
 
         if (len > maxLen) {
 
-            passed = $o.makeMaskCheck(+bitmask || this.CLIP_RIGHT);
+            passed = $o.makeMaskCheck($n.toNumber(bitmask, this.CLIP_RIGHT));
 
             if (passed(this.CLIP_LEFT)) {
 
@@ -443,7 +443,7 @@
     }
 
     /**
-     *  $o.clone(object, bitmask = 0) -> Object
+     *  $o.clone(object[, bitmask = 0]) -> Object
      *  - object (Object): Object to copy.
      *  - bitmask (Number): Settings for the cloning process.
      *
@@ -465,10 +465,15 @@
      *  - `$o.CLONE_DEEP`: Sets the clone to be a deep copy.
      *  - `$o.CLONE_DESC`: Gives the copied properties the same descriptors.
      *  - `$o.CLONE_ENUM`: Copies the non-enumerable properties.
+     *  - `$o.CLONE_NODE`: Clones any DOM nodes.
+     *  - `$o.CLONE_INST`: Re-creates [[Class]]es.
+     *  - `$o.CLONE_NULL`: Starts from a base of `null` rather than `{}`.
      *
      *  As a bitmask, the options can be combined using the bitwise OR operator
      *  `|` (not to be confused with the logical OR operator `||`).
      *
+     *  ## $o.CLONE_DEEP
+     * 
      *  A deep copy checks the `object`'s properties to see if they contain an
      *  `Object` and copy it rather than referencing it.
      *
@@ -488,6 +493,8 @@
      *      obj1.foo.baz; // -> true
      *                    // Yay!
      *
+     *  ## $o.CLONE_DESC
+     * 
      *  A descriptor copy will copy the property descriptors as well as the
      *  properties themselves.
      *
@@ -517,6 +524,8 @@
      *  This is the same as setting a property using dot or square-brackets
      *  notation (i.e. setting a typical `Object` property).
      *
+     *  ## $o.CLONE_ENUM
+     * 
      *  Enumerable properties appear in `for ... in` loops. By default, this
      *  function will not copy the non-enumerable properties, but using the
      *  `$o.CLONE_ENUM` setting will copy them all.
@@ -539,6 +548,8 @@
      *      o3.foo; // -> true
      *      'foo' in o3; // -> true
      *
+     *  ## $o.CLONE_NODE
+     * 
      *  By default, DOM Nodes are referenced. To clone a DOM Node when cloning
      *  the object, use the `$o.CLONE_NODE` setting. All children of a cloned
      *  node are also cloned.
@@ -552,6 +563,8 @@
      *      o1.node === o3.node; // -> false
      *      o3.node.nodeName; // -> "DIV"
      *
+     *  ## $o.CLONE_INST
+     * 
      *  If the object contains a `$clone` method and the `$o.CLONE_INST` setting
      *  is used, the `$clone` method is executed instead of copying the object.
      *  This is mainly advantageous when creating a class using [[$c]]. There
@@ -569,6 +582,20 @@
      *      o1.inst === o2.inst; // -> true
      *      o1.inst === o3.inst; // -> false
      *      o3.inst.name; // -> "foo"
+     *
+     *  ## $o.CLONE_NULL
+     * 
+     *  If `$o.CLONE_NULL` is passed, the copy starts from a `null` base, rather
+     *  than an object literal (`{}`).
+     *
+     *      var o1 = {foo: 1},
+     *          o2 = $o.clone(o1),
+     *          o3 = $o.clone(o1, $o.CLONE_NULL);
+     *
+     *      o1.hasOwnProperty('foo'); // -> true
+     *      o2.hasOwnProperty('foo'); // -> true
+     *      o3.hasOwnProperty('foo'); // TypeError
+     *                                // o3.hasOwnProperty is not a function
      * 
      *  As mentioned, the bitmask can be fully defined using the bitwise OR
      *  operator `|`. Here is the code to clone an object deeply, copy the
@@ -580,12 +607,12 @@
      **/
     function clone(object, bitmask) {
 
-        var passed = this.makeMaskCheck(+bitmask || 0),
+        var passed = this.makeMaskCheck($n.toNumber(bitmask, 0)),
             isDeep = passed(this.CLONE_DEEP),
             isDesc = passed(this.CLONE_DESC),
             isNode = passed(this.CLONE_NODE),
             isInst = passed(this.CLONE_INST),
-            copy   = {},
+            copy   = passed(this.CLONE_NULL) ? Object.create(null) : {},
             method = passed(this.CLONE_ENUM) ? 'getOwnPropertyNames' : 'keys';
 
         Object[method](object).forEach(function (key) {
@@ -856,7 +883,7 @@
     function debounce(func, wait) {
 
         var timeout  = null,
-            interval = $n.isNumeric(wait) ? +wait : 100;
+            interval = $n.toNumber(wait, 100);
 
         return function() {
 
@@ -1146,7 +1173,7 @@
 
         var arr     = this.from(array),
             indices = [],
-            index   = arr.indexOf(search, offset || 0);
+            index   = arr.indexOf(search, $n.toNumber(offset, 0));
 
         while (index > -1) {
 
@@ -1159,10 +1186,11 @@
 
     }
 
-    /**
-     *  $a.invoke(array, method) -> Array
+    /** related to $a.pluck
+     *  $a.invoke(array, method[, arg1[, arg2] ...]) -> Array
      *  - array (Array): Array over which to iterate.
      *  - method (String): Function to execute on each entry of the array.
+     *  - args (?): Optional arguments to be passed to the function.
      *
      *  Executes a method on all entries of an array or array-like object.
      *  Additional arguments for the invokation may be passed as additional
@@ -1188,8 +1216,8 @@
 
     /**
      *  $o.is(value1, value2) -> Boolean
-     *  - value1 (*): First value to test.
-     *  - value2 (*): Second value to test.
+     *  - value1 (?): First value to test.
+     *  - value2 (?): Second value to test.
      *
      *  Checks to see if two variables have the same value.
      *
@@ -1224,14 +1252,14 @@
      *  into an Array using [[$a.from]]. Think of this function as a companion
      *  function for [[$a.isArray]].
      *
-     *      $a.isArrayLike({length: '0'}); // -> true
-     *      $a.isArrayLike(arguments); // -> true
+     *      $a.isArrayLike({length: '0'});                      // -> true
+     *      $a.isArrayLike(arguments);                          // -> true
      *      $a.isArrayLike(document.getElementsByTagName('a')); // -> true
-     *      $a.isArrayLike('string'); // -> true
-     *      $a.isArrayLike([]); // -> true
-     *      $a.isArrayLike(true); // -> false
-     *      $a.isArrayLike({foo: 1}); // -> false
-     *      $a.isArrayLike(10); // -> false
+     *      $a.isArrayLike('string');                           // -> true
+     *      $a.isArrayLike([]);                                 // -> true
+     *      $a.isArrayLike(true);                               // -> false
+     *      $a.isArrayLike({foo: 1});                           // -> false
+     *      $a.isArrayLike(10);                                 // -> false
      * 
      **/
     function isArrayLike(array) {
@@ -1287,13 +1315,13 @@
      *  the object is a number, but rather that the object could be used as a
      *  number.
      *
-     *      $n.isNumeric(1); // -> true
-     *      $n.isNumeric('1'); // -> true
+     *      $n.isNumeric(1);    // -> true
+     *      $n.isNumeric('1');  // -> true
      *      $n.isNumeric(0x10); // -> true
-     *      $n.isNumeric(1e4); // -> true
-     *      $n.isNumeric(NaN); // -> false
-     *      $n.isNumeric(''); // -> false
-     *      $n.isNumeric(1/0); // -> false
+     *      $n.isNumeric(1e4);  // -> true
+     *      $n.isNumeric(NaN);  // -> false
+     *      $n.isNumeric('');   // -> false
+     *      $n.isNumeric(1/0);  // -> false
      * 
      **/
     function isNumeric(number) {
@@ -1518,7 +1546,7 @@
     }
 
     /**
-     *  $s.pad(string, minLength, padding = '0', bitmask = $s.PAD_RIGHT) -> String
+     *  $s.pad(string, minLength[, padding = '0'[, bitmask = $s.PAD_RIGHT]]) -> String
      *  - string (String): Original string to pad.
      *  - minLength (Number): Minimum length of the  final string.
      *  - padding (String): String to use for padding.
@@ -1578,7 +1606,7 @@
 
             }
 
-            left  = isLeft ?  this.clip(this.repeat(filler, lDif), lDif) : '';
+            left  = isLeft  ? this.clip(this.repeat(filler, lDif), lDif) : '';
             right = isRight ? this.clip(this.repeat(filler, rDif), rDif) : '';
 
         }
@@ -1614,7 +1642,7 @@
 
     }
 
-    /**
+    /** related to $a.invoke
      *  $a.pluck(array, property) -> Array
      *  $a.pluck(array, property, value) -> Object
      *  - array (Array): Array to iterate over.
@@ -1686,6 +1714,7 @@
      *
      *      var array = [1, 2, 3, 4, 5, 6];
      *      var filtered = $a.remove(array, 2, 5, 8); // -> [1, 3, 4, 6]
+     *
      **/
     function remove(array) {
 
@@ -1706,7 +1735,7 @@
      *      
      **/
     function repeat(string, times) {
-        return Array(($n.toPosInt(times) || 0) + 1).join(string);
+        return Array($n.toNumber(times, 0) + 1).join(string);
     }
 
     /**
@@ -1823,7 +1852,7 @@
      *          console.log('arg = %o sent at %d', arg, time);
      *      }
      * 
-     *      var throttled = throttle(logArg);
+     *      var throttled = $f.throttle(logArg);
      * 
      *      throttled(0);
      *      window.setTimeout(function () { throttled(1); },  50);
@@ -1838,7 +1867,7 @@
      *  Considered updating the example so the `throttled` function is given a
      *  smaller delay:
      *
-     *      var throttled = throttle(logArg, 25);
+     *      var throttled = $f.throttle(logArg, 25);
      *
      *  In the updated example, all arguments will be logged out.
      *
@@ -1847,7 +1876,7 @@
      **/
     function throttle(func, wait) {
 
-        var interval = $n.isNumeric(wait) ? +wait : 100,
+        var interval = $n.toNumber(wait, 100),
             last     = 0,
             timeout  = null;
 
@@ -1907,15 +1936,39 @@
     function times(number, handler, context) {
 
         var i  = 0,
-            il = this.isNumeric(number) ? this.toPosInt(number) : 0;
+            il = this.toNumber(number, 0);
 
         while (i < il) {
 
             handler.call(context, i);
-
             i += 1
 
         }
+
+    }
+
+    /**
+     *  $n.toNumber(number[, def = NaN]) -> Number
+     *  - number (Number|String): Number to convert.
+     *  - def (Number): Optional default value.
+     *
+     *  Converts the given number into a positive integer. If the given `number`
+     *  is not numeric, this function will return `def` if `def` is a number or
+     *  `NaN` if `def` is not.
+     *
+     *      $n.toNumber('10', 5); // -> 10
+     *      $n.toNumber('-10.5', 5); // -> 10
+     *      $n.toNumber('ten', 5); // -> 5
+     *      $n.toNumber('ten'); // -> NaN
+     *      $n.toNumber('ten', 'five'); // -> NaN
+     *
+     *  See also: [[$n.isNumeric]] and [[$n.toPosInt]].
+     **/
+    function toNumber(number, def) {
+
+        return this.isNumeric(number) ?
+            this.toPosInt(number) :
+            typeof def === 'number' ? def : NaN;
 
     }
 
@@ -1924,9 +1977,44 @@
      *  - number (Number): Number to convert.
      *
      *  Converts the given number into a positive integer.
+     *
+     *      $n.toPosInt(10); // -> 10
+     *      $n.toPosInt('10'); // -> 10
+     *      $n.toPosInt('-10.5'); // -> 10
+     *      $n.toPosInt('ten'); // -> NaN
+     *
      **/
     function toPosInt(number) {
         return Math.floor(Math.abs(number));
+    }
+
+    /**
+     *  $a.unique(array) -> Array
+     *  - array (Array): Array that should be reduced.
+     *
+     *  Reduces an array so that only unique entries remain.
+     *
+     *      $a.unique([1, 2, 1, 3, 1, 4, 2, 5]); // -> [1, 2, 3, 4, 5]
+     *
+     *  This method also works on array-like structures.
+     *
+     *      $a.unique('mississippi'); // -> ['m', 'i', 's', 'p']
+     * 
+     **/
+    function unique(array) {
+        return Array.prototype.reduce.call(array, unique_checkAndAdd, []);
+    }
+
+    // Function called by the reduce method. As its own function, it doesn't
+    // need to be re-created each time unique() is called.
+    function unique_checkAndAdd(prev, curr) {
+        
+        if (prev.indexOf(curr) < 0) {
+            prev.push(curr);
+        }
+
+        return prev;
+
     }
 
     /**
@@ -2101,7 +2189,8 @@
              **/
             this.args = args || [];
 
-            this.dummy.addEventListener(this.name, this.execute.bind(this));
+            this.dummy.
+                addEventListener(this.name, this.execute.bind(this), false);
 
         },
 
@@ -2196,14 +2285,14 @@
      * 
      *  Handles string interpolation.
      *
-     *      var string = 'Testing #{framework}';
-     *      var map = {framework: 'Song'};
+     *      var string = 'Testing ${framework}';
+     *      var map = {framework: 'Application'};
      *      var temp = new $s.Template(string);
-     *      temp.evaluate(map); // -> 'Testing Song'
+     *      temp.evaluate(map); // -> 'Testing Application'
      *
      *  Templates are designed to be used multiple times.
      *
-     *      var string = 'I hate #{one} and #{two}';
+     *      var string = 'I hate ${one} and ${two}';
      *      var temp = new $s.Template(string);
      *      
      *      temp.evaluate({one: 'wind', two: 'rain'});
@@ -2215,32 +2304,33 @@
      *
      *  Placeholders that are not mentioned in the `map` are ignored.
      *
-     *      var string = '#{foo} #{bar}';
+     *      var string = '${foo} ${bar}';
      *      var map = {bar: 'see?'};
      *      var temp = new $s.Template(string);
-     *      temp.evaluate(map); // -> '#{foo} see?'
+     *      temp.evaluate(map); // -> '${foo} see?'
      * 
      *  Only strings and numbers are accepted as replacements.
      * 
-     *      var string = 'Testing #{framework}';
+     *      var string = 'Testing ${framework}';
      *      var map = {framework: true};
      *      var temp = new $s.Template(string);
-     *      temp.evaluate(map); // -> 'Testing #{framework}'
+     *      temp.evaluate(map); // -> 'Testing ${framework}'
      * 
      *  Placeholders can be escaped using the back-slash character "\\". Two
      *  back-slashes are required because JavaScript uses the back-slash as an
      *  escape character, removing it from the string - a second back-slash is
      *  needed so the first escapes it.
      * 
-     *      var string = 'Testing \\#{framework}';
-     *      var map = {framework: 'Song'};
+     *      var string = 'Testing \\${framework}';
+     *      var map = {framework: 'Application'};
      *      var temp = new $s.Template(string);
-     *      temp.evaluate(map); // -> 'Testing #{framework}'
+     *      temp.evaluate(map); // -> 'Testing ${framework}'
      *
      *  New patters can be created by supplying the `pattern` argument. The
      *  pattern should define 3 groups: the character before the placeholder,
-     *  the whole placeholder and the key within the placeholder. For example,
-     *  here is a replacement using two braces.
+     *  the whole placeholder and the key within the placeholder (see
+     *  [[$s.Template#drawFunction]]). For example, here is a replacement using
+     *  two braces.
      *
      *      var string = 'Testing {{framework}}';
      *      var map = {framework: 'Song'};
@@ -2315,10 +2405,9 @@
         createFunc: function () {
 
             var pattern = new RegExp(this.pattern.source, 'g'),
-                basic   = Template.basic,
 
                 // Uses values not keys because the escaped values are needed.
-                basics  = $o.values(basic).join('');
+                basics  = $o.values(Template.basic).join('');
 
             return new Function(
                 'o',
@@ -2326,23 +2415,43 @@
                     this.string.
                         replace(
                             new RegExp('[' + basics + ']', 'g'),
-                            function ($0) {
-                                return basic[$0];
-                            }
+                            this.getBasic
                         ).
-                        replace(pattern, function ($0, $1, $2, $3) {
-
-                            return $1 === '\\' ?
-                                $2 :
-                                $1 + '" + ' +
-                                    '(typeof o.' + $3 + ' === "string" || ' +
-                                        'typeof o.' + $3 + ' === "number" ? ' +
-                                        'o.' + $3 + ' : "' + $2 + '") + "';
-
-                        })
+                        replace(pattern, this.drawFunction)
                     ) +
                 '";'
             );
+
+        },
+
+        /**
+         *  $s.Template#getBasic(match) -> String
+         *  - match (String): Character to escape.
+         *
+         *  Returns the escaped character from the [[$s.Template.basic]] object.
+         **/
+        getBasic: function (match) {
+            return Template.basic[match];
+        },
+
+        /**
+         *  $s.Template#drawFunction(complete, prefix, whole, key) -> String
+         *  - complete (String): Complete match.
+         *  - prefix (String): Character before the match.
+         *  - whole (String): Complete placeholder match.
+         *  - key (String): Placeholder without the wrapper.
+         *
+         *  Draws the function that will replaces placeholder. This function is
+         *  passed into `new Function` with `o` as the replacement object name.
+         **/
+        drawFunction: function (complete, prefix, whole, key) {
+
+            return prefix === '\\' ?
+                whole :
+                prefix + '" + ' +
+                    '(typeof o.' + key + ' === "string" || ' +
+                        'typeof o.' + key + ' === "number" ? ' +
+                        'o.' + key + ' : "' + whole + '") + "';
 
         },
 
@@ -2401,7 +2510,7 @@
          *  Default pattern used for times when no pattern is passed to the
          *  [[$s.Template]] constructor.
          **/
-        pattern: /(^|.|\r|\n)(#\{(.*?)\})/
+        pattern: /(^|.|\r|\n)(\$\{(.*?)\})/
 
     });
 
@@ -2410,7 +2519,7 @@
         compact:     compact,
         Context:     Context,
         every:       every,
-        exec:        exec.
+        exec:        exec,
         filter:      filter,
         first:       first,
         forEach:     forEach,
@@ -2427,7 +2536,8 @@
         remove:      remove,
         shuffle:     shuffle,
         slice:       slice,
-        some:        some
+        some:        some,
+        unique:      unique
     });
 
     augment($c, {
@@ -2446,6 +2556,7 @@
     augment($n, {
         isNumeric: isNumeric,
         times:     times,
+        toNumber:  toNumber,
         toPosInt:  toPosInt
     });
 
@@ -2467,7 +2578,8 @@
         CLONE_DESC: 0x2,
         CLONE_ENUM: 0x4,
         CLONE_NODE: 0x8,
-        CLONE_INST: 0x10
+        CLONE_INST: 0x10,
+        CLONE_NULL: 0x20
     }, true);
 
     augment($s, {
@@ -2502,7 +2614,7 @@
         },
         function (key, value) {
 
-            Core.extend(key, function () {
+            app.addHelper(key, function () {
                 return value;
             });
 

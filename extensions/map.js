@@ -3,16 +3,16 @@
  *
  *  An extension for handling maps. This is based on
  *  [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)
- * (Draft at time of writing - 13 December 2014) and serves as a fallback.
+ *  (Draft at time of writing - 13 December 2014) and serves as a fallback.
  **/
-Core.extend('map', function (Core) {
+app.addHelper('map', function (app) {
 
     'use strict';
 
-    var $a      = Core.get('array'),
-        $c      = Core.get('class'),
-        $o      = Core.get('object'),
-        $s      = Core.get('string'),
+    var $a      = app.getHelper('array'),
+        $c      = app.getHelper('class'),
+        $o      = app.getHelper('object'),
+        $s      = app.getHelper('string'),
         Map     = window.Map,
         WeakMap = window.WeakMap,
 
@@ -139,7 +139,7 @@ Core.extend('map', function (Core) {
                  *  stored values. If the browser supports a native `WeakMap`
                  *  then this property will not exist.
                  **/
-                this._symbol = $s.uniqid('$Core-framework-WeakMapReference-');
+                this._symbol = $s.uniqid('$Application-WeakMapReference-');
 
                 if ($a.isArray(iterable)) {
 

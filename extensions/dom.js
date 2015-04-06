@@ -1,22 +1,28 @@
-Core.extend('dom', function (Core) {
+/**
+ *  dom -> Helper
+ *
+ *  Handles all interactions with the Document Object Model (DOM) including
+ *  traversing, manipulating and binding events.
+ **/
+app.addHelper('dom', function (app) {
 
     'use strict';
 
-    var $a  = Core.get('array'),
-        $o  = Core.get('object'),
+    var $a  = app.getHelper('array'),
+        $o  = app.getHelper('object'),
         dom = {},
 
         // Helper function for extending the main object.
         extend = $o.extend.bind($o, dom),
 
         // Dummy element for testing DOM methods.
-        dummy  = document.createElement('div'),
+        dummy = document.createElement('div'),
 
         // Store for events that need dispatching.
         eventStore = {},
 
         // Element that will fire events, wrapping event dispatching.
-        eventElem = document.createElement('div'),
+        //eventElem = document.createElement('div'),
 
         // Objects for adding methods to the main object.
         select  = null,
@@ -30,42 +36,42 @@ Core.extend('dom', function (Core) {
         },
 
         // WeakMap used for storing data on elements.
-        dataMap = Core.get('WeakMap').weak(),
+        dataMap = app.getHelper('WeakMap').weak(),
 
         // Randomly generated string to help prevent the events being
         // acciently overridden by the user.
-        eventKey = Core.get('string').uniqid('CoreFrameworkEvents-');
+        eventKey = app.getHelper('string').uniqid('ApplicationEvents-');
 
     // Add the event listener that will exevure the stored event.
-    eventElem.addEventListener('CoreFrameworkDispatch', function (e) {
+    //eventElem.addEventListener('CoreFrameworkDispatch', function (e) {
 
-        var event = eventStore[e.detail.type];
+    //    var event = eventStore[e.detail.type];
 
-        event.handler.call(event.contact, event.event);
+    //    event.handler.call(event.contact, event.event);
 
-    }, false);
+    //}, false);
 
     // Dispatches a single event, wrapped in a "CoreFrameworkDispatch" event to
     // allow all events to execute even if one of them throws an Error.
-    function dispatch(type, event, handler, context) {
+    //function dispatch(type, event, handler, context) {
 
-        var custom = new CustomEvent('CoreFrameworkDispatch', {
-            bubbles:    false,
-            cancelable: false,
-            detail:     {
-                type: type
-            }
-        });
+    //    var custom = new CustomEvent('CoreFrameworkDispatch', {
+    //        bubbles:    false,
+    //        cancelable: false,
+    //        detail:     {
+    //            type: type
+    //        }
+    //    });
 
-        eventStore[type] = {
-            context: context,
-            event:   event,
-            handler: handler
-        };
+    //    eventStore[type] = {
+    //        context: context,
+    //        event:   event,
+    //        handler: handler
+    //    };
 
-        eventElem.dispatchEvent(custom);
+    //    eventElem.dispatchEvent(custom);
 
-    }
+    //}
 
     /**
      *  dom.Selecting
@@ -300,7 +306,7 @@ Core.extend('dom', function (Core) {
             return (context || document).querySelector(selector);
         },
 
-        /**
+        /** alias of dom.get
          *  dom.byQueryAll(selector[, context = document]) -> NodeList
          *  - selector (String): CSS selector to identify the elements.
          *  - context (Element): Context for the search.
@@ -388,7 +394,7 @@ Core.extend('dom', function (Core) {
 
     });
 
-    /** alias of: dom.getByQueryAll
+    /** alias of dom.getByQueryAll
      *  dom.get(selector[, context = document]) -> Array
      **/
     select.get = select.getByQueryAll;
@@ -463,16 +469,20 @@ Core.extend('dom', function (Core) {
 
             }
 
-            while (elem && elem.parentNode) {
+            if (typeof text === 'function') {
 
-                if (test.call(ctx, elem)) {
+                while (elem && elem.parentNode) {
 
-                    parent = elem;
-                    break;
+                    if (test.call(ctx, elem)) {
+
+                        parent = elem;
+                        break;
+
+                    }
+
+                    elem = elem.parentNode;
 
                 }
-
-                elem = elem.parentNode;
 
             }
 
@@ -599,7 +609,7 @@ Core.extend('dom', function (Core) {
     core = {
 
         /**
-         *  dom.matches(elem, selector) -> Boolean
+         *  dom.is(elem, selector) -> Boolean
          *  - elem (Element): Element to test.
          *  - selector (String): CSS selector that might match.
          *
@@ -615,15 +625,15 @@ Core.extend('dom', function (Core) {
          *
          *  Then the function would return the following results:
          *
-         *      dom.matches(elem, '#elem'); // -> true
-         *      dom.matches(elem, 'div'); // -> true
-         *      dom.matches(elem, '[id="elem"]'); // -> true
-         *      dom.matches(elem, '.class'); // -> false
-         *      dom.matches(elem, ':checked'); // -> false
-         *      dom.matches(elem, '[disabled]'); // -> false
+         *      dom.is(elem, '#elem'); // -> true
+         *      dom.is(elem, 'div'); // -> true
+         *      dom.is(elem, '[id="elem"]'); // -> true
+         *      dom.is(elem, '.class'); // -> false
+         *      dom.is(elem, ':checked'); // -> false
+         *      dom.is(elem, '[disabled]'); // -> false
          * 
          **/
-        matches: matches,
+        is: matches,
 
         /**
          *  dom.wrapMap -> Object
@@ -666,7 +676,7 @@ Core.extend('dom', function (Core) {
                 html   = null;
 
             if (!match) {
-                Core.fatal('dom.make() Unrecognised HTML string "' + str + '"');
+                app.fatal('dom.make() Unrecognised HTML string "' + str + '"');
             }
 
             wrap = this.wrapMap[match[1]];
@@ -1360,10 +1370,12 @@ Core.extend('dom', function (Core) {
         },
         
         /**
+         *  dom.setAttr(elem, attrs)
+         *  - elem (Element): Element whose attributes should be set.
+         *  - attrs (Object): Name/value pairs of attributes to set.
          *  dom.setAttr(elem, attr, value)
          *  - elem (Element): Element whose attribute should be set.
-         *  - attr (String|Object): Name of the attribute to set or all
-         *    attributes to set.
+         *  - attr (String): Name of the attribute to set.
          *  - value (String): Value of the element.
          *
          *  Sets the attribute of an element.
@@ -1395,7 +1407,8 @@ Core.extend('dom', function (Core) {
         },
 
         /**
-         *  dom.getAttr(elem[, attr]) -> String|Object
+         *  dom.getAttr(elem) -> Object
+         *  dom.getAttr(elem, attr) -> String
          *  - elem (Element): Element whose attribute should be returned.
          *  - attr (String): Attribute to return.
          * 
@@ -1470,7 +1483,7 @@ Core.extend('dom', function (Core) {
          *      dom.removeAttr(one, 'does-not-exist'); // <div></div>
          *
          *  If the `attr` argument is ommitted, all attributes are removed from
-         *  the element
+         *  the element.
          **/
         removeAttr: function (elem, attr) {
 
@@ -1488,6 +1501,31 @@ Core.extend('dom', function (Core) {
 
     });
 
+    function hasData(elem) {
+        return dataMap.has(elem);
+    }
+
+    function getData(elem) {
+
+        var data = null;
+
+        if (dataMap.has(elem)) {
+            data = dataMap.get(elem);
+        } else {
+
+            data = {};
+            dataMap.set(elem, data);
+
+        }
+
+        return data;
+
+    }
+
+    function setData(elem, data) {
+        dataMap.set(elem, data);
+    }
+
     /**
      *  dom.Data
      *
@@ -1502,30 +1540,11 @@ Core.extend('dom', function (Core) {
      **/
     extend({
 
-        // Gets the data object for the given element. If an object does not
-        // exist, it is created before being returned.
-        _getData: function (elem) {
-
-            var data = null;
-
-            if (dataMap.has(elem)) {
-                data = dataMap.get(elem);
-            } else {
-
-                data = {};
-                dataMap.set(elem, data);
-
-            }
-
-            return data;
-
-        },
-
         /**
          *  dom.setData(elem, key, value)
          *  - elem (Element): Element that should gain data.
          *  - key (String): Key for the data.
-         *  - value (*): Value for the data.
+         *  - value (?): Value for the data.
          *
          *  Sets data for an element.
          *
@@ -1539,15 +1558,15 @@ Core.extend('dom', function (Core) {
          **/
         setData: function (elem, key, value) {
 
-            var data = this._getData(elem);
+            var data = getData(elem);
 
             data[key] = value;
-            dataMap.set(elem, data);
+            setData(elem, data);
 
         },
 
         /**
-         *  dom.getData(elem[, key]) -> *
+         *  dom.getData(elem[, key]) -> ?
          *  - elem (Element): Element whose data should be accessed.
          *  - key (String): Key for the data.
          *
@@ -1566,7 +1585,7 @@ Core.extend('dom', function (Core) {
          **/
         getData: function (elem, key) {
 
-            var data = this._getData(elem);
+            var data = getData(elem);
 
             return typeof key === 'string' ? data[key] : $o.clone(data);
         
@@ -1589,10 +1608,8 @@ Core.extend('dom', function (Core) {
          **/
         hasData: function (elem, key) {
 
-            var hasOwn = Object.prototype.hasOwnProperty;
-
-            return dataMap.has(elem) &&
-                    hasOwn.call(this._getData(elem), key);
+            return hasData(elem) &&
+                    Object.prototype.hasOwnProperty.call(getData(elem), key);
 
         },
 
@@ -1614,23 +1631,135 @@ Core.extend('dom', function (Core) {
          **/
         removeData: function (elem, key) {
 
-            var data = this._getData(elem);
+            var data = getData(elem);
 
             delete data[key];
-            dataMap.set(elem, data);
+            setData(elem, data);
 
         }
 
     });
 
+    var Context = $c.create($a.Context, {
+
+        execute: function () {
+
+            var handler = this.handler;
+
+            if (handler && typeof handler.handler === 'function') {
+                handler.handler.apply(handler.context, this.args);
+            }
+
+        }
+
+    });
+
+    /*var returnTrue = $f.makeConstant(true),
+        returnFalse = $f.makeConstant(false);
+
+    var Event = $c.create({
+
+        init: function (source) {
+
+            this.originalEvent = source;
+
+            this.isDefaultPrevented            = returnFalse;
+            this.isPropagationStopped          = returnFalse;
+            this.isImmediatePropagationStopped = returnFalse;
+
+            // + other stuff ...
+
+
+        },
+
+        preventDefault: function () {
+
+            var e = this.originalEvent;
+
+            this.isDefaultPrevented = returnTrue;
+
+            if (e && e.preventDefault) {
+                e.preventDefault();
+            }
+
+        },
+
+        stopPropagation: function () {
+
+            var e = this.originalEvent;
+
+            this.isPropagationStopped = returnTrue;
+
+            if (e && e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+        },
+
+        stopImmediatePropagation: function () {
+
+            var e = this.originalEvent;
+
+            this.isImmediatePropagationStopped = returnTrue;
+
+            if (e && e.stopImmediatePropagation) {
+                e.stopImmediatePropagation();
+            }
+
+        }
+
+    });*/
+
+    function getEvents(elem, type) {
+
+        var events = dom.getData(elem, eventKey) || Object.create(null);
+
+        return events[type] || [];
+
+    }
+
+    function setEvents(elem, type, list) {
+
+        var events = dom.getData(elem, eventKey) || Object.create(null);
+
+        events[type] = list;
+        dom.setData(elem, eventKey, events);
+
+    }
+
+    function modifySelector(selector) {
+
+        var modified = [];
+
+        selector.split(/\s*,\s*/).forEach(function (part) {
+            modified.push(part, '* ' + part);
+        });
+
+        return modified.join(',');
+
+    }
+
     extend({
 
         on: function (elem, type, selector, handler, context) {
 
-            var that   = this,
-                events = that.getData(elem, eventKey),
-                exists = $a.isArray(events[type]),
-                list   = events[type] || [];
+            var that = this,
+                list = getEvents(elem, type);
+
+            if (!list.length) {
+                
+                elem.addEventListener(type, function (e) {
+
+                    // Don't just reference `list` - this must be re-found each
+                    // time this handler executes so it's always up-to-date.
+                    var ctx = new Context(getEvents(elem, type), null, e);
+
+                    ctx.run();
+                    ctx.free();
+
+                }, false);
+
+            }
 
             if (typeof selector === 'function') {
 
@@ -1638,15 +1767,124 @@ Core.extend('dom', function (Core) {
                 handler  = selector;
                 selector = '*';
 
+            } else {
+                selector = modifySelector(selector);
             }
 
             list.push({
-                orig:    handler,
-                context: context || elem,
-                handler: function (e) {
+                type:     type,
+                original: handler,
+                selector: selector,
+                handler:  function (e) {
+
                     if (that.is(e.target, selector)) {
                         handler.apply(this, arguments);
                     }
+
+                }
+            });
+
+            setEvents(elem, type, list);
+
+        },
+
+        one: function (elem, type, selector, handler, context) {
+        },
+
+        off: function (elem, type, selector, handler) {
+        },
+
+        fire: function (elem, type, data) {
+        }
+
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //var noChange = {};
+
+    //var delegates = {
+    //    blur:  'focusout',
+    //    focus: 'focusin'
+    //};
+
+
+    var special = {
+
+        blur: {
+            delegate: 'focusout'
+        },
+
+        focus: {
+            delegate: 'focusin'
+        },
+
+        // Some kind of setup is necessary -- these are different events!!
+        mouseenter: {
+            bindType: 'mouseover'
+        },
+
+        mouseleave: {
+            bindType: 'mouseout'
+        }
+
+    };
+
+    extend({
+
+        //on: function (elem, type, selector, handler, context /*, noChange */) {
+        on: function (elem, type, selector, handler, context) {
+
+            var that   = this,
+                events = that.getData(elem, eventKey),
+                exists = $a.isArray(events[type]),
+                list   = null,
+                spesh  = special[type];//events[type] || [];
+
+            // if noChange === noChange, preserve the selector and don't touch
+            // the arguments. noChange is an internal and undocumented argument.
+            //if (arguments[5] !== noChange) {
+
+                if (typeof selector === 'function') {
+
+                    context  = handler;
+                    handler  = selector;
+                    selector = '*';
+                    type     = (spesh && shesh.bindType) || type;
+
+                } else {
+
+                    selector = modifySelector(selector);
+                    type = (spesh && spesh.delegate) || type;
+
+                }
+
+            //}
+
+            list = events[type] || [];
+
+            list.push({
+                orig:     handler,
+                context:  context || elem,
+                selector: selector,
+                handler:  function (e) {
+
+                    if (that.is(e.target, selector)) {
+                        handler.apply(this, arguments);
+                    }
+
                 }
             });
 
@@ -1655,7 +1893,25 @@ Core.extend('dom', function (Core) {
 
             if (!exists) {
 
-                event.addEventListener(type, function (e) {
+                elem.addEventListener(type, function (e) {
+
+                    var ctx = new Context(
+                        that.getData(elem, eventKey)[type],
+                        null,
+                        e
+                    );
+
+                    ctx.run();
+                    ctx.free();
+
+                }, spesh && typeof spesh.capture === 'boolean'
+                        ? spesh.capture :
+                        false);
+
+
+
+                // what is event?
+                /*event.addEventListener(type, function (e) {
 
                     var events = that.getData(elem, eventKey)[type] || [],
                         i      = 0,
@@ -1666,28 +1922,39 @@ Core.extend('dom', function (Core) {
 
                         event = events[i];
                         i += 1;
+                        // Use $a.exec() instead
                         dispatch(type, e, event.handler, event.context);
 
                     }
 
                     delete eventStore[type];
 
-                }, false); 
+                }, false); */
 
             }
 
         },
 
-        off: function (elem, type, handler) {
+        off: function (elem, type, selector, handler) {
 
             var data   = this.getData(elem, eventKey),
                 events = data[type] || [],
                 i      = 0,
                 il     = events.length;
 
+            if (typeof selector === 'function') {
+
+                handler  = selector;
+                selector = '*';
+
+            } else {
+                selector = modifySelector(selector);
+            }
+
             while (i < il) {
 
-                if (events[i].orig === handler) {
+                if (events[i].orig === handler &&
+                        events[i].selector === selector) {
                     delete events[i];
                 }
 
@@ -1700,17 +1967,44 @@ Core.extend('dom', function (Core) {
 
         },
 
-        one: function (elem, type, handler, context) {
+        one: function (elem, type, selector, handler, context) {
 
-            var that = this,
-                func = function (e) {
+            var that  = this,
+                isDel = typeof selector === 'string',
+                func  = function (e) {
 
-                    handler.call(this, e);
-                    that.off(elem, type, func);
+                    (isDel ? handler : selector).call(this, e);
+                    that.off(elem, type, selector, handler);
 
                 };
 
-            that.on(elem, type, func, handler);
+            if (isDel) {
+                that.on(elem, type, selector, func, context);
+            } else {
+                that.on(elem, type, func, handler);
+            }
+
+            /*var that = this,
+                func = null;
+
+            if (typeof selector === 'function') {
+
+                context  = handler;
+                handler  = selector;
+                selector = '*';
+
+            } else {
+                selector = modifySelector(selector);
+            }
+
+            func = function (e) {
+
+                handler.call(this, e);
+                that.off(elem, type, selector, func);
+
+            };
+
+            that.on(elem, type, selector, func, context, noChange);*/
 
         },
 
@@ -1724,5 +2018,7 @@ Core.extend('dom', function (Core) {
         }
 
     });
+
+    return dom;
 
 });
