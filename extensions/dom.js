@@ -10,6 +10,7 @@ app.addHelper('dom', function (app) {
 
     var $a  = app.getHelper('array'),
         $o  = app.getHelper('object'),
+        $s  = app.getHelper('string'),
         dom = {},
 
         // Helper function for extending the main object.
@@ -40,7 +41,7 @@ app.addHelper('dom', function (app) {
 
         // Randomly generated string to help prevent the events being
         // acciently overridden by the user.
-        eventKey = app.getHelper('string').uniqid('ApplicationEvents-');
+        eventKey = $s.uniqid('ApplicationEvents-');
 
     // Add the event listener that will exevure the stored event.
     //eventElem.addEventListener('CoreFrameworkDispatch', function (e) {
@@ -72,6 +73,99 @@ app.addHelper('dom', function (app) {
     //    eventElem.dispatchEvent(custom);
 
     //}
+
+    /**
+     *  dom.Utilities
+     *
+     *  Utility methods that assist using the `dom` methods.
+     **/
+    extend({
+
+        /**
+         *  dom.identify(elem) -> String
+         *  - elem (Element): Element to identify
+         *
+         *  Returns the `id` of the given element. If the element does not have
+         *  an `id` already, a unique one is created and assigned before being
+         *  returned.
+         *
+         *  Assuming this markup:
+         *  
+         *      <div class="div-one" id="foo"></div>
+         *      <div class="div-two"></div>
+         *      
+         *  ... and these variables:
+         *
+         *      var one = dom.byQuery('.div-one'),
+         *          two = dom.byQuery('.div-two');
+         *
+         *  ... then this function will have the following effects:
+         *
+         *      dom.identify(one); // -> "foo"
+         *                         // DOM unchanged.
+         *      dom.identify(two); // -> Something like "dom-id-578ce32f6a9bc"
+         *                         // DOM altered so the second div is now:
+         *                         // <div class="div-two" id="dom-id-578ce32f6a9bc"></div>
+         *      dom.identify(one); // -> "foo"
+         *                         // DOM unchanged.
+         *      dom.identify(two); // -> Something like "dom-id-578ce32f6a9bc"
+         *                         // DOM unchanged.
+         * 
+         **/
+        identify: function (elem) {
+
+            var id = elem.id;
+
+            if (!id) {
+
+                do {
+                    id = $s.uniqid('dom-id-');
+                } while (this.byId(id));
+
+                elem.id = id;
+
+            }
+
+            return id;
+
+        },
+
+        /**
+         *  dom.each(elems, method[, args ... ]) -> Array
+         *  - elems (Array): Elements to manipulate.
+         *  - method (String): Method name.
+         *  - args (?): Optional arguments for the method.
+         *
+         *  `dom.each` iterates over the given `elems` array or array-like
+         *  structure. Additional arguments can be passed to this method.
+         *
+         *      // Adds the class "two" to all elements with the "one" class.
+         *      dom.each(dom.get('.one'), 'addClass', 'two');
+         *
+         *  The method returns any results as an array:
+         *
+         *      dom.each(dom.get('.one'), 'identify');
+         *      // -> ['one-one', 'one-two' ... ]
+         *
+         *  As mentioned, array-like structures also work so there is no need to
+         *  use the `getBy*` methods if you prefer the performance:
+         *
+         *      dom.each(dom.byClass('one'), 'identify');
+         *      // -> ['one-one', 'one-two' ... ]
+         *
+         *  Be warned that not all `by*` methods return an array-like structure
+         *  but the `getBy*` will always return an array.
+         *
+         *  If you wish to pass a function to the elements, use [[$a.forEach]]:
+         *
+         *      $a.forEach(dom.byClass('one'), function (elem) {
+         *          dom.addClass(elem, 'two');
+         *      });
+         *
+         **/
+        each: $a.makeInvoker(dom)
+
+    });
 
     /**
      *  dom.Selecting
@@ -388,9 +482,15 @@ app.addHelper('dom', function (app) {
      **/
     $o.each(select, function (key, value) {
 
-        select['get' + key[0].toUpperCase() + key.slice(1)] = function () {
-            return $a.from(this[key].apply(this, arguments)).compact();
-        };
+        var getName = 'get' + key[0].toUpperCase() + key.slice(1);
+
+        select[getName] = key === 'byId' || key === 'byQuery' ?
+            function () {
+                return [this[key].apply(this, arguments)];
+            } :
+            function () {
+                return $a.from(this[key].apply(this, arguments)).compact();
+            };
 
     });
 
