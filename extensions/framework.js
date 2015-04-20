@@ -2,48 +2,91 @@
 
     'use strict';
 
-        /**
-         *  $a -> Extension
+        /** alias of: $a
+         *  array -> Helper
          *
          *  Collection of functions designed to aid manipulation of `Array`s.
          *  Most methods of $a are designed to be generic. They will work with
          *  any enumerable collection such as `NodeList`s, `String`s and
-         *  `Object`s with a numeric "length" property.
+         *  `Object`s with a numeric `length` property.
+         *
+         *  As a helper, it can have any any name when created, but
+         *  conventionally it is always assigned to the `$a` variable.
+         *
+         *  The array (or array-like object) to be manipulated is always passed
+         *  in as the first argument. If the method expects a function as the
+         *  penultimate argument, the last argument will always be the context
+         *  for that function.
          **/
     var $a = {},
 
-        /**
-         *  $c -> Extension
+        /** alias of: $c
+         *  class -> Helper
          *
          *  Collection of functions designed to aid creation of "Classes".
-         */
+         *
+         *  As a helper, it can have any any name when created, but
+         *  conventionally it is always assigned to the `$c` variable.
+         **/
         $c = {},
 
-        /**
-         *  $f -> Extension
+        /** alias of: $f
+         *  function -> Helper
          *
          *  Collection of functions designed to aid manipulation of `Function`s.
+         *
+         *  As a helper, it can have any any name when created, but
+         *  conventionally it is always assigned to the `$f` variable.
+         *
+         *  The function to be manipulated is always passed in as the first
+         *  argument. If the method expects a function as the penultimate
+         *  argument, the last argument will always be the context for that
+         *  function.
          **/
         $f = {},
 
-        /**
-         *  $n -> Extension
+        /** alias of: $n
+         *  number -> Helper
          *
          *  Collection of functions designed to aid manipulation of `Number`s.
+         *
+         *  As a helper, it can have any any name when created, but
+         *  conventionally it is always assigned to the `$n` variable.
+         *
+         *  The number to be manipulated is always passed in as the first
+         *  argument. If the method expects a function as the penultimate
+         *  argument, the last argument will always be the context for that
+         *  function.
          **/
         $n = {},
 
-        /**
-         *  $o -> Extension
+        /** alias of: $o
+         *  object -> Helper
          *
          *  Collection of functions designed to aid manipulation of `Object`s.
+         *
+         *  As a helper, it can have any any name when created, but
+         *  conventionally it is always assigned to the `$o` variable.
+         *
+         *  The object to be manipulated is always passed in as the first
+         *  argument. If the method expects a function as the penultimate
+         *  argument, the last argument will always be the context for that
+         *  function.
          **/
         $o = {},
 
-        /**
-         *  $s -> Extension
+        /** alias of: $s
+         *  string -> Helper
          *
          *  Collection of functions designed to aid manipulation of `String`s.
+         *
+         *  As a helper, it can have any any name when created, but
+         *  conventionally it is always assigned to the `$s` variable.
+         *
+         *  The string to be manipulated is always passed in as the first
+         *  argument. If the method expects a function as the penultimate
+         *  argument, the last argument will always be the context for that
+         *  function.
          **/
         $s = {},
 
@@ -54,20 +97,25 @@
         Template = null,
 
         /**
-         *  $f.identity(o) -> ?
+         *  function.identity(o) -> ?
          *  - o (?): Any variable
          *
-         *  An (identity 
-         *  function)[http://en.wikipedia.org/wiki/Identity_function] or one
+         *  An [identity 
+         *  function](http://en.wikipedia.org/wiki/Identity_function) or one
          *  that simply returns whatever it's given. This is primarily used as a
          *  fallback for optional function calls.
+         *
+         *      $f.identity(1);    // -> 1
+         *      $f.identify(true); // -> true
+         *      $f.identity();     // -> undefined
+         *      
          **/
         identity = function (o) {
             return o;
         },
 
         /**
-         *  $a.from(array[, map[, context]]) -> Array
+         *  array.from(array[, map[, context]]) -> Array
          *  - array (Array | Object): Either an array or an array-like object.
          *  - map (Function): Optional map for converting the array.
          *  - context (Object): Context for the `map`.
@@ -78,7 +126,7 @@
          *      $a.from(arguments);
          *      // -> [ ... ] (arguments of function as an array)
          *      $a.from(document.getElementsByTagName('a'));
-         *      // -> [a, a, a ... ]
+         *      // -> [<a>, <a>, <a> ... ]
          *
          *  The `map` argument is called on all entries in the array or
          *  array-like object. Additionally, a `context` for the `map` may be
@@ -110,28 +158,50 @@
          *  to be converted. This is because in JavaScript, `Function`s have a
          *  `length` property equivalent to the number of expected arguments.
          *
-         *      $a.from($a.from); // -> [undefined, undefined]
+         *      $a.from($a.from); // -> [undefined, undefined, undefined]
          * 
          **/
         from = Array.from || function (array, map, context) {
             return this.map(array, map || identity, context);
         },
 
-        /**
-         *  $o.keys(object) -> Array
+        /** related to: object.values
+         *  object.keys(object) -> Array
          *  - object (Object): Object whose keys should be returned.
          *
          *  A simple short-cut to the native `Object.keys()` function. For full
-         *  details, check (MDN)[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys].
+         *  details, check [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys).
+         *
+         *      var o = {
+         *          foo: 1,
+         *          bar: 2,
+         *          baz: 3
+         *      };
+         *      $o.keys(o); // -> ['foo', 'bar', 'baz']
+         *
+         *  Typically, the order of keys in the returned array matches the order
+         *  in which the keys were added to the object, but this is convention
+         *  rather than standard so should not be relied upon.
          **/
         keys = Object.keys,
 
         /**
-         *  $a.isArray(array) -> Boolean
+         *  array.isArray(array) -> Boolean
          *  - array (?): Object to test.
          *
          *  A simple short-cut to the native `Array.isArray()` function.For full
-         *  details, check (MDN)[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray].
+         *  details, check [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray).
+         *  This of this a a companion method of [[array.isArrayLik]].
+         *
+         *      $a.isArrayLike([]);                                 // -> true
+         *      $a.isArrayLike({length: '0'});                      // -> false
+         *      $a.isArrayLike(arguments);                          // -> false
+         *      $a.isArrayLike(document.getElementsByTagName('a')); // -> false
+         *      $a.isArrayLike('string');                           // -> false
+         *      $a.isArrayLike(true);                               // -> false
+         *      $a.isArrayLike({foo: 1});                           // -> false
+         *      $a.isArrayLike(10);                                 // -> false
+         *      
          **/
         isArray = Array.isArray,
 
@@ -213,10 +283,8 @@
 
         };
 
-
-
     /**
-     *  $o.addConfig(object, settings)
+     *  object.addConfig(object, settings)
      *  - object (Object): Object that should gain configuration values.
      *  - settings (Object): Configuration settings for the object.
      *
@@ -234,7 +302,7 @@
      *      o.isReal = false;
      *      o.isReal; // -> true
      *
-     *  **Pro tip**
+     *  == Pro tip (Bitmasks) ==
      *
      *  When attempting to create a bitmask, settings should be powers of 2 (1,
      *  2, 4, 8 ...). Writing the settings in hexadecimal literals can save
@@ -252,8 +320,20 @@
      *      [0x100, 0x200, 0x400, 0x800]; // [256, 512, 1024, 2048]
      *
      *  Settings can be combined using either a bitwise OR operator (`|`) or a
-     *  plus operator (`+`) and decoded inside the object methods using
-     *  [[$o.makeMaskCheck]].
+     *  plus operator (`+`, although this is considerably less common). The
+     *  order of numbers when being combined is not important.
+     *
+     *      1 | 2; // 3
+     *      2 | 1; // 3
+     *
+     *  Comparing the numbers should be done with the bitwise `&` operator.
+     *
+     *      var mask = 2 | 4; // 6
+     *      mask & 1; // 0
+     *      mask & 2; // 2
+     *      mask & 4; // 4
+     *      mask & 8; // 0
+     *
      **/
     function addConfig(object, settings) {
 
@@ -270,7 +350,7 @@
 
     }
 
-    /**
+    /** related to: Class.addMethods, related to: Class.extend
      *  Class.addMethod(name, method)
      *  - name (String): Name of the method to add.
      *  - method (Function): Function to add.
@@ -291,7 +371,9 @@
      *      });
      *
      *      inst.getBar(); // -> 1
-     * 
+     *
+     *  To add multiple methods, use [[Class.addMethods]] and add either, use
+     *  [[Class.extend]].
      **/
     function addMethod(name, method) {
 
@@ -325,18 +407,37 @@
 
     }
 
-    /** related to: Class.addMethod
+    /** related to: Class.addMethod, related to: Class.extend
      *  Class.addMethods(proto)
      *  - proto (Object): Key/Value pairs of names/methods to add.
      *
      *  Helper function for adding multiple methods to a class's `prototype`.
+     *
+     *      var Foo = $c.create({
+     *          init: function (bar) {
+     *              this.bar = bar;
+     *          }
+     *      });
+     *      
+     *      var inst = new Foo(1);
+     *
+     *      Foo.addMethods({
+     *          getBar: function () {
+     *              return this.bar;
+     *          }
+     *      });
+     *
+     *      inst.getBar(); // -> 1
+     *
+     *  To add a single method, use [[Class.addMethod]] and add either, use
+     *  [[Class.extend]].
      **/
     function addMethods(proto) {
         forIn(proto, this.addMethod, this);
     }
 
     /**
-     *  $a.chunk(array, size[, modifier[, context]]) -> Array
+     *  array.chunk(array, size[, modifier[, context]]) -> Array
      *  - array (Array): Array to slice.
      *  - size (Number): Size of slices.
      *  - modifier (Function): Function to convert the entries.
@@ -353,7 +454,7 @@
      *  array before they're sliced.
      *
      *      var array = [1, 2, 3, 4, 5, 6, 7];
-     *      $.chunk(array, 3, function (n) { return Math.pow(10, n); });
+     *      $a.chunk(array, 3, function (n) { return Math.pow(10, n); });
      *      // -> [ [10, 100, 1000], [10000, 100000, 1000000], [10000000] ]
      * 
      **/
@@ -380,7 +481,7 @@
     }
 
     /**
-     *  $s.clip(string, maxLength[, bitmask = $s.CLIP_RIGHT]) -> String
+     *  string.clip(string, maxLength[, bitmask = $s.CLIP_RIGHT]) -> String
      *  - string (String): String to clip.
      *  - maxLength (Number): Maximum length of the string.
      *  - bitmask (Number): Type of clipping.
@@ -413,6 +514,7 @@
      *
      *      $s.clip('abcdefg', 4, $s.CLIP_BOTH); // -> "bcde"
      *
+     *  See [[object.addConfig]] for more information about bitmasks.
      **/
     function clip(string, maxLength, bitmask) {
 
@@ -420,15 +522,15 @@
             len     = clipped.length,
             start   = 0,
             maxLen  = $n.toPosInt(maxLength),
-            passed  = null;
+            mask    = 0;
 
         if (len > maxLen) {
 
-            passed = $o.makeMaskCheck($n.toNumber(bitmask, this.CLIP_RIGHT));
+            mask = $n.toNumber(bitmask, this.CLIP_RIGHT);
 
-            if (passed(this.CLIP_LEFT)) {
+            if (mask & this.CLIP_LEFT) {
 
-                start = passed(this.CLIP_RIGHT) ?
+                start = mask & this.CLIP_RIGHT ?
                         Math.floor((len - maxLen) / 2) :
                         len - maxLen;
 
@@ -443,7 +545,7 @@
     }
 
     /**
-     *  $o.clone(object[, bitmask = 0]) -> Object
+     *  object.clone(object[, bitmask = 0]) -> Object
      *  - object (Object): Object to copy.
      *  - bitmask (Number): Settings for the cloning process.
      *
@@ -472,7 +574,7 @@
      *  As a bitmask, the options can be combined using the bitwise OR operator
      *  `|` (not to be confused with the logical OR operator `||`).
      *
-     *  ## $o.CLONE_DEEP
+     *  == $o.CLONE_DEEP ==
      * 
      *  A deep copy checks the `object`'s properties to see if they contain an
      *  `Object` and copy it rather than referencing it.
@@ -493,7 +595,7 @@
      *      obj1.foo.baz; // -> true
      *                    // Yay!
      *
-     *  ## $o.CLONE_DESC
+     *  == $o.CLONE_DESC ==
      * 
      *  A descriptor copy will copy the property descriptors as well as the
      *  properties themselves.
@@ -524,7 +626,7 @@
      *  This is the same as setting a property using dot or square-brackets
      *  notation (i.e. setting a typical `Object` property).
      *
-     *  ## $o.CLONE_ENUM
+     *  == $o.CLONE_ENUM ==
      * 
      *  Enumerable properties appear in `for ... in` loops. By default, this
      *  function will not copy the non-enumerable properties, but using the
@@ -548,7 +650,7 @@
      *      o3.foo; // -> true
      *      'foo' in o3; // -> true
      *
-     *  ## $o.CLONE_NODE
+     *  == $o.CLONE_NODE ==
      * 
      *  By default, DOM Nodes are referenced. To clone a DOM Node when cloning
      *  the object, use the `$o.CLONE_NODE` setting. All children of a cloned
@@ -563,13 +665,13 @@
      *      o1.node === o3.node; // -> false
      *      o3.node.nodeName; // -> "DIV"
      *
-     *  ## $o.CLONE_INST
+     *  == $o.CLONE_INST ==
      * 
      *  If the object contains a `$clone` method and the `$o.CLONE_INST` setting
      *  is used, the `$clone` method is executed instead of copying the object.
-     *  This is mainly advantageous when creating a class using [[$c]]. There
-     *  are one or two caveats when copying an instance - see [[Class#$clone]]
-     *  for full details.
+     *  This is mainly advantageous when creating a class using [[$c.create]].
+     *  There are one or two caveats when copying an instance - see
+     *  [[Class#$clone]] for full details.
      *
      *      var Foo = $c.create({ init: function (name) {this.name = name;} });
      *      var foo = new Foo('foo');
@@ -583,7 +685,7 @@
      *      o1.inst === o3.inst; // -> false
      *      o3.inst.name; // -> "foo"
      *
-     *  ## $o.CLONE_NULL
+     *  == $o.CLONE_NULL ==
      * 
      *  If `$o.CLONE_NULL` is passed, the copy starts from a `null` base, rather
      *  than an object literal (`{}`).
@@ -597,23 +699,17 @@
      *      o3.hasOwnProperty('foo'); // TypeError
      *                                // o3.hasOwnProperty is not a function
      * 
-     *  As mentioned, the bitmask can be fully defined using the bitwise OR
-     *  operator `|`. Here is the code to clone an object deeply, copy the
-     *  property descriptors and all properties, enumerable or not:
-     *
-     *      $o.clone(object, $o.CLONE_DEEP | $o.CLONE_DESC | $o.CLONE_ENUM);
-     *
-     *  The order of constants is not important.
+     *  See [[object.addConfig]] for more information about bitmasks.
      **/
     function clone(object, bitmask) {
 
-        var passed = this.makeMaskCheck($n.toNumber(bitmask, 0)),
-            isDeep = passed(this.CLONE_DEEP),
-            isDesc = passed(this.CLONE_DESC),
-            isNode = passed(this.CLONE_NODE),
-            isInst = passed(this.CLONE_INST),
-            copy   = passed(this.CLONE_NULL) ? Object.create(null) : {},
-            method = passed(this.CLONE_ENUM) ? 'getOwnPropertyNames' : 'keys';
+        var mask   = $n.toNumber(bitmask, 0),
+            isDeep = mask & this.CLONE_DEEP,
+            isDesc = mask & this.CLONE_DESC,
+            isNode = mask & this.CLONE_NODE,
+            isInst = mask & this.CLONE_INST,
+            copy   = mask & this.CLONE_NULL ? Object.create(null) : {},
+            method = mask & this.CLONE_ENUM ? 'getOwnPropertyNames' : 'keys';
 
         Object[method](object).forEach(function (key) {
 
@@ -633,7 +729,7 @@
                 if (Array.isArray(value)) {
                     value = value.concat();
                 } else if (value && typeof value === 'object' && !isElem) {
-                    value = this.clone(value, bitmask);
+                    value = this.clone(value, mask);
                 }
 
             } else if (isNode && isElem) {
@@ -652,7 +748,7 @@
 
     }
 
-    /** relates to: $o.clone
+    /** related to: object.clone
      *  Class#$clone() -> Class
      *
      *  Creates a copy of the instance, taking the original constructor and
@@ -679,8 +775,8 @@
      *      foo.newThing; // -> "really new"
      *      clone.newThing; // -> undefined
      *
-     *  This method exists to aid [[$o.clone]] when the `$o.CLONE_INST` setting
-     *  is passed.
+     *  This method exists to aid [[object.clone]] when the `$o.CLONE_INST`
+     *  setting is passed.
      **/
     function cloneInstance(args) {
 
@@ -701,7 +797,7 @@
     }
 
     /**
-     *  $a.compact(array) -> Array
+     *  array.compact(array) -> Array
      *  - array (Array): Array to compact.
      *
      *  Compacts an array to remove empty entries. An empty entry is one that is
@@ -722,7 +818,7 @@
     }
 
     /**
-     *  $c.create([Base, ]proto) -> Function
+     *  class.create([Base], proto) -> Function
      *  - Base (Function): Constructor to use as a base.
      *  - proto (Object): Prototype for the new class.
      *
@@ -779,7 +875,12 @@
      *      var inst3 = new Baz(3, 4);
      *      inst3.getBar(); // -> 3
      *      inst3.baz; // -> 4
-     * 
+     *
+     *  After creation, a class can have methods added to it using
+     *  [[Class.addMethod]], [[Class.addMethods]] or [[Class.extend]]. Classes
+     *  also have a hidden [[Class#clone]] method so it can be duplicated.
+     *  Additionally, classes have a `parent` property which is a direct link to
+     *  the super-class' `prototype`.
      **/
     function createClass(Base, proto) {
 
@@ -836,8 +937,8 @@
 
     }
 
-    /** related to: $f.throttle
-     *  $f.debounce(func[, wait = 100]) -> Function
+    /** related to: function.throttle
+     *  function.debounce(func[, wait = 100]) -> Function
      *  - func (Function): Original function to debounce.
      *  - wait (Number): Required duration of inactivity.
      *
@@ -877,8 +978,8 @@
      *  The updated example will log all numbers as there is no activity for 25
      *  milliseconds each time.
      *
-     *  For a comparison of throttling vs. debouncing, see the example on (this
-     *  page)[http://loopinfinito.com.br/2013/09/24/throttle-e-debounce-patterns-em-javascript/].
+     *  For a comparison of throttling vs. debouncing, see the example on [this
+     *  page](http://loopinfinito.com.br/2013/09/24/throttle-e-debounce-patterns-em-javascript/).
      **/
     function debounce(func, wait) {
 
@@ -904,7 +1005,7 @@
     }
 
     /**
-     *  $o.each(object, handler[, context])
+     *  object.each(object, handler[, context])
      *  - object (Object): Object to interate over.
      *  - handler (Function): Handler to call for each object key/value pair.
      *  - context (Object): Optional context for the handler.
@@ -922,9 +1023,9 @@
      *          // if key is "bar", value will be 2.
      *      });
      *
-     *  There are times when the ability to `break` the loop may be wanted.
-     *  In these situations, the function should return `false`. This will stop
-     *  the `handler` being called for any remaining object entries.
+     *  There are times when the ability to stop the loop may be wanted. In
+     *  these situations, the function should return `false`. This will stop the
+     *  `handler` being called for any remaining object entries.
      *
      *      var firstKey = '';
      *      $o.each({foo: 1, bar: 2}, function (key, value) {
@@ -953,28 +1054,43 @@
     }
 
     /**
-     *  $a.every(array, handler[, context]) -> Boolean
+     *  array.every(array, handler[, context]) -> Boolean
      *  - array (Array): Array or array-like object over which to iterate
      *  - handler (Function): Function to call on each entry of the array.
      *  - context (Object): Context for the handler.
      *
      *  Identical to calling the native `Array.prototype.every` with `array` as
      *  its context. This function is handy for iterating over array-like
-     *  objects as well as arrays, something that `Array.prototype.every` can
-     *  handle, but the array-like objects rarely have a "every" method.
+     *  objects as well as arrays (something that `Array.prototype.every` can
+     *  handle, but the array-like objects rarely have a "every" method).
+     *
+     *      $a.every([1, 2, 3], $n.isNumeric);                   // -> true
+     *      $a.every([100, true, 'a'], $n.isNumeric);            // -> false
+     *      $a.every({'0': 1, '1': 2, length: 2}, $n.isNumeric); // -> true
+     *
+     *  A potential "gotcha" is that, according to the standards,
+     *  `Array.prototype.every` should default to returning `true` until
+     *  a test fails. This has the curious effect of always returning `true` for
+     *  empty arrays.
+     *
+     *      $a.every([], $n.isNumeric); // -> true
+     *      var a = [];
+     *      a.length = 10;
+     *      $a.every(a, $n.isNumeric); // -> true
+     *      
      **/
     function every(array, handler, context) {
         return Array.prototype.every.call(array, handler, context);
     }
 
-    /** related to $a.Context
-     *  $a.exec(array[, context[, args]])
+    /** related to: array.Context
+     *  array.exec(array[, context[, args]])
      *  - array (Array): List of functions to execute.
      *  - context (Object): Context for the functions.
      *  - args (Array): Arguments to pass to the functions.
      *
      *  Executes a list of functions in their own execution context. See
-     *  [[$a.Context]] for more information
+     *  [[Context]] for more information.
      **/
     function exec(array, context, args) {
 
@@ -986,7 +1102,7 @@
     }
 
     /**
-     *  $o.extend(object[, extension1 ...]) -> Object
+     *  object.extend(object[, extension1[, extension2]]) -> Object
      *  - object (Object): Source object to extend.
      *
      *  Extends one object with the properties of others. This function takes
@@ -1052,22 +1168,29 @@
     }
 
     /**
-     *  $a.filter(array, handler[, context]) -> Array
+     *  array.filter(array, handler[, context]) -> Array
      *  - array (Array): Array or array-like object over which to iterate
      *  - handler (Function): Function to call on each entry of the array.
      *  - context (Object): Context for the handler.
      *
      *  Identical to calling the native `Array.prototype.filter` with `array` as
      *  its context. This function is handy for iterating over array-like
-     *  objects as well as arrays, something that `Array.prototype.filter` can
-     *  handle, but the array-like objects rarely have a "filter" method.
+     *  objects as well as arrays (something that `Array.prototype.filter` can
+     *  handle, but the array-like objects rarely have a "filter" method).
+     *
+     *      $a.filter([1, '2', 'three', 1e4], $n.isNumeric); // [1, '2', 1e4]
+     *      $a.filter(
+     *          {'0': 1, '1': '2', '2': 'three', '3' 1e4, length: 4},
+     *          $n.isNumeric
+     *      ); // [1, '2', 1e4]
+     *      
      **/
     function filter(array, handler, context) {
         return Array.prototype.filter.call(array, handler, context);
     }
 
-    /** related to: $a.last
-     *  $a.first(array[, filter[, context]]) -> ?
+    /**
+     *  array.first(array[, filter[, context]]) -> ?
      *  - array (Array): Array whose first item should be returned.
      *  - filter (Function): Optional filter.
      *  - context (Object): Context for the filter
@@ -1084,7 +1207,8 @@
      *      var array = [true, 2, '5', 'ten', null];
      *      $a.first(array, $n.isNumeric); // -> 2
      *
-     */
+     *  To get the last value in an array, use [[array.last]].
+     **/
     function first(array, filter, context) {
 
         var i     = 0,
@@ -1118,7 +1242,7 @@
     }
 
     /**
-     *  $a.forEach(array, handler[, context])
+     *  array.forEach(array, handler[, context])
      *  - array (Array): Array or array-like object over which to iterate
      *  - handler (Function): Function to call on each entry of the array.
      *  - context (Object): Context for the handler.
@@ -1147,7 +1271,7 @@
     }
 
     /**
-     *  $a.indicesOf(array, search[, offset = 0]) -> Array
+     *  array.indicesOf(array, search[, offset = 0]) -> Array
      *  - array (Array): Array through which to search.
      *  - search (?): Item to search for.
      *  - offset (Number): Offset for searching.
@@ -1186,8 +1310,8 @@
 
     }
 
-    /** related to $a.pluck
-     *  $a.invoke(array, method[, arg1[, arg2] ...]) -> Array
+    /** related to: array.pluck
+     *  array.invoke(array, method[, arg1[, arg2]]) -> Array
      *  - array (Array): Array over which to iterate.
      *  - method (String): Function to execute on each entry of the array.
      *  - args (?): Optional arguments to be passed to the function.
@@ -1201,8 +1325,8 @@
      *      $a.invoke(array, 'toUpperCase'); // -> ['ONE', 'TWO', THREE']
      *      $a.invoke(array, 'slice', 1); // -> ['ne', 'wo', 'hree']
      *
-     *  To get a property rather than executing a method, use the [[$a.pluck]]
-     *  method.
+     *  To get a property rather than executing a method, use the
+     *  [[array.pluck]] method.
      **/
     function invoke(array, method) {
 
@@ -1215,7 +1339,7 @@
     }
 
     /**
-     *  $o.is(value1, value2) -> Boolean
+     *  object.is(value1, value2) -> Boolean
      *  - value1 (?): First value to test.
      *  - value2 (?): Second value to test.
      *
@@ -1243,20 +1367,19 @@
 
     }
 
-
     /**
-     *  $a.isArrayLike(array) -> Boolean
+     *  array.isArrayLike(array) -> Boolean
      *  - array (?): Object to test.
      *
      *  Checks to see if an object is array-like, i.e. it could be converted
-     *  into an Array using [[$a.from]]. Think of this function as a companion
-     *  function for [[$a.isArray]].
+     *  into an Array using [[array.from]]. Think of this function as a
+     *  companion method for [[array.isArray]].
      *
+     *      $a.isArrayLike([]);                                 // -> true
      *      $a.isArrayLike({length: '0'});                      // -> true
      *      $a.isArrayLike(arguments);                          // -> true
      *      $a.isArrayLike(document.getElementsByTagName('a')); // -> true
      *      $a.isArrayLike('string');                           // -> true
-     *      $a.isArrayLike([]);                                 // -> true
      *      $a.isArrayLike(true);                               // -> false
      *      $a.isArrayLike({foo: 1});                           // -> false
      *      $a.isArrayLike(10);                                 // -> false
@@ -1270,7 +1393,7 @@
     }
 
     /**
-     *  $o.isEmpty(object) -> Boolean
+     *  object.isEmpty(object) -> Boolean
      *  - object (Object): Object to check.
      *
      *  Checks to see if the given object has any properties. If so, this
@@ -1308,7 +1431,7 @@
     }
 
     /**
-     *  $n.isNumeric(number) -> Boolean
+     *  number.isNumeric(number) -> Boolean
      *  - number (?): Object to test.
      *
      *  Checks to see if the given object is numeric. This does not mean that
@@ -1328,8 +1451,8 @@
         return !isNaN(parseFloat(number)) && isFinite(number);
     }
 
-    /** related to: $a.first
-     *  $a.last(array[, filter[, context]]) -> ?
+    /**
+     *  array.last(array[, filter[, context]]) -> ?
      *  - array (Array): Array whose last item should be returned.
      *  - filter (Function): Optional filter.
      *  - context (Object): Context for the filter.
@@ -1346,6 +1469,7 @@
      *      var array = [true, 2, '5', 'ten', null];
      *      $a.last(array, $n.isNumeric); // -> '5'
      *
+     *  To get the first entry of an array, use [[array.first]].
      **/
     function last(array, filter, context) {
 
@@ -1379,7 +1503,7 @@
     }
 
     /**
-     *  $f.lock(func[, context[, args]]) -> Function
+     *  function.lock(func[, context[, args]]) -> Function
      *  - func (Function): Function to lock.
      *  - context (Object): Context for the function.
      *  - args (Array): Arguments for the function.
@@ -1387,7 +1511,7 @@
      *  Locks a function so it will always execute with the given `context` and
      *  arguments. It's useful when a possibly unknown or dynamic number of
      *  arguments is required. If the arguments are known, it is faster to use
-     *  (Function.prototype.bind)[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind].
+     *  [Function.prototype.bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind).
      *
      *      function adder(a, b) {
      *          return a + b;
@@ -1407,7 +1531,7 @@
     }
 
     /**
-     *  $f.makeConstant(returnValue) -> Function
+     *  function.makeConstant(returnValue) -> Function
      *  - returnValue (?): The value to return.
      *
      *  When coding, it may be necessary to create a constant function (one that
@@ -1415,8 +1539,9 @@
      *  create that one.
      *
      *      var returnTrue = $f.makeConstant(true);
-     *      returnTrue(); // -> true
-     *      returnTrue(false); // -> true (all arguments are ignored)
+     *      returnTrue();          // -> true
+     *      returnTrue(false);     // -> true (all arguments are ignored)
+     *      returnTrue.call(null); // -> true (context is ignored)
      * 
      **/
     function makeConstant(returnValue) {
@@ -1424,41 +1549,10 @@
     }
 
     /**
-     *  $o.makeMaskCheck(bitmask) -> Function
-     *  - bitmask (Number): Given combined mask.
-     *
-     *  Creates a function that quickly checks whether a setting was provided.
-     *
-     *      var isOne   = 1,
-     *          isTwo   = 2,
-     *          isFour  = 4,
-     *          isEight = 8;
-     *
-     *      var check = $n.makeMaskCheck(isOne + isFour);
-     *
-     *      check(isOne);   // -> true
-     *      check(isTwo);   // -> false
-     *      check(isFour);  // -> true
-     *      check(isEight); // -> false
-     *
-     *  (When working with positive integers, the logical OR operator (`|`)
-     *  instead of the add operator (`+`) will also work).
-     *
-     *  This method works very well with [[$o.addConfig]].
-     **/
-    function makeMaskCheck(bitmask) {
-
-        return function (setting) {
-            return (bitmask & setting) === setting; // bitwise operator
-        };
-
-    }
-
-    /**
-     *  $a.makeInvoker(context) -> Function
+     *  array.makeInvoker(context) -> Function
      *  - context (Object): Context for the invoker.
      *
-     *  Creates a function similar to [[$a.invoke]] but bound to a certain
+     *  Creates a function similar to [[array.invoke]] but bound to a certain
      *  context. This fires the context's method for each entry of the array,
      *  rather than a method on the array entry itself.
      *
@@ -1491,7 +1585,7 @@
     };
 
     /**
-     *  $o.makeOwns(object) -> Function
+     *  object.makeOwns(object) -> Function
      *  - object (?): Object to be bound to `Object.prototype.hasOwnProperty`.
      *
      *  Makes a function that will check a given object has the properties
@@ -1519,34 +1613,48 @@
     }
 
     /**
-     *  $a.map(array, handler[, context]) -> Array
+     *  array.map(array, handler[, context]) -> Array
      *  - array (Array): Array or array-like object over which to iterate
      *  - handler (Function): Function to call on each entry of the array.
      *  - context (Object): Context for the handler.
      *
      *  Identical to calling the native `Array.prototype.map` with `array` as
      *  its context. This function is handy for iterating over array-like
-     *  objects as well as arrays, something that `Array.prototype.map` can
-     *  handle, but the array-like objects rarely have a "map" method.
+     *  objects as well as arrays (something that `Array.prototype.map` can
+     *  handle, but the array-like objects rarely have a "map" method).
+     *
+     *      $a.map([1, '2', 'three', 1e4], $n.isNumeric);
+     *      // -> [true, true, false, true]
+     *      $a.map(
+     *          {'0': 1, '1': '2', '2': 'three', '3': 1e4, length: 4},
+     *          $n.isNumeric
+     *      );
+     *      // -> [true, true, false, true]
+     *      
      **/
     function map(array, handler, context) {
         return Array.prototype.map.call(array, handler, context);
     }
 
     /**
-     *  $f.noop()
+     *  function.noop()
      *
      *  A "NO-OPeration" function. Takes no arguments, returns nothing. This is
      *  mainly useful for situations where a default function is required with
      *  the expectation being that the function will be overridden by a setting
      *  or argument later on.
+     *
+     *      $f.noop();          // -> undefined
+     *      $f.noop(true);      // -> undefined (arguments are ignored)
+     *      $f.noop.call(null); // -> undefined (context is ignored)
+     * 
      **/
     function noop() {
         return;
     }
 
     /**
-     *  $s.pad(string, minLength[, padding = '0'[, bitmask = $s.PAD_RIGHT]]) -> String
+     *  string.pad(string, minLength[, padding = '0'[, bitmask = $s.PAD_RIGHT]]) -> String
      *  - string (String): Original string to pad.
      *  - minLength (Number): Minimum length of the  final string.
      *  - padding (String): String to use for padding.
@@ -1557,8 +1665,8 @@
      *  is taken. If no padding is given, `'0'` is assumed.
      *
      *      $s.pad('abcde', 10, '-'); // -> "abcde-----"
-     *      $s.pad('abcde', 1, '-'); // -> "abcde"
-     *      $s.pad('abcde', 10); // -> "abcde00000"
+     *      $s.pad('abcde', 1, '-');  // -> "abcde"
+     *      $s.pad('abcde', 10);      // -> "abcde00000"
      *
      *  Padding is clipped so only the necessary part of it is added to increase
      *  the given string to the minimum length.
@@ -1573,9 +1681,10 @@
      *    `$s.PAD_RIGHT | $s.PAD_LEFT`).
      * 
      *      $s.pad('abcde', 10, '-', $s.PAD_RIGHT); // -> "-----abcde"
-     *      $s.pad('abcde', 10, '-', $s.PAD_LEFT); // -> "abcde-----"
-     *      $s.pad('abcde', 10, '-', $s.PAD_BOTH); // -> "--abcde---"
+     *      $s.pad('abcde', 10, '-', $s.PAD_LEFT);  // -> "abcde-----"
+     *      $s.pad('abcde', 10, '-', $s.PAD_BOTH);  // -> "--abcde---"
      *
+     *  See [[object.addConfig]] for more information about bitmasks.
      **/
     function pad(string, minLength, padding, bitmask) {
 
@@ -1589,15 +1698,15 @@
                     typeof padding === 'number' ?
                 String(padding) :
                 '0',
-            passed  = null,
+            mask    = 0,
             isLeft  = false,
             isRight = false;
 
         if (dif > 0) {
 
-            passed  = $o.makeMaskCheck(+bitmask || this.PAD_RIGHT);
-            isLeft  = passed(this.PAD_LEFT);
-            isRight = passed(this.PAD_RIGHT);
+            mask    = $n.toNumber(bitmask, this.PAD_RIGHT);
+            isLeft  = mask & this.PAD_LEFT;
+            isRight = mask & this.PAD_RIGHT;
 
             if (isLeft && isRight) {
 
@@ -1616,7 +1725,7 @@
     }
 
     /**
-     *  $a.partition(array, handler[, context]) -> Array
+     *  array.partition(array, handler[, context]) -> Array
      *  - array (Array): Array to partition.
      *  - handler (Function): Function to partition the array.
      *  - context (Object): Context for the handler.
@@ -1642,9 +1751,8 @@
 
     }
 
-    /** related to $a.invoke
-     *  $a.pluck(array, property) -> Array
-     *  $a.pluck(array, property, value) -> Object
+    /** related to: array.invoke
+     *  array.pluck(array, property[, value]) -> Array|Object
      *  - array (Array): Array to iterate over.
      *  - property (String): Property to retrieve.
      *  - value (String): Property name.
@@ -1681,7 +1789,7 @@
      *      // -> {foo: 3, bar: 2}
      *
      *  To execute a method rather than accessing a property, use the
-     *  [[$a.invoke]] method.
+     *  [[array.invoke]] method.
      **/
     function pluck(array, property, value) {
 
@@ -1706,7 +1814,7 @@
     }
 
     /**
-     *  $a.remove(array) -> Array
+     *  array.remove(array) -> Array
      *  - array (Array): Array that should have items removed.
      *
      *  Removes items from an array, if they are found. The original array is
@@ -1725,7 +1833,7 @@
     }
 
     /**
-     *  $s.repeat(string, times) -> String
+     *  string.repeat(string, times) -> String
      *  - string (String): String to repeat.
      *  - times (Number): Number of times to repeat the string.
      *
@@ -1739,7 +1847,7 @@
     }
 
     /**
-     *  $a.shuffle(array) -> Array
+     *  array.shuffle(array) -> Array
      *  - array (Array): Array to shuffle.
      *
      *  Shuffles the entries of an array or array-like object. The original
@@ -1773,7 +1881,7 @@
     }
 
     /**
-     *  $a.slice(arrayLike[, begin[, end]]) -> Array
+     *  array.slice(arrayLike[, begin[, end]]) -> Array
      *  - arrayLike (Array | Object): Array-like object to slice.
      *  - begin (Number): Starting point for the slice.
      *  - end (Number): Ending point for the slice.
@@ -1785,7 +1893,7 @@
      *      // -> [ ... ] (All arguments except the first)
      *
      *  The `begin` and `end` arguments are optional and act in the same way as
-     *  the native (Array.prototype.slice)[https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/slice].
+     *  the native [Array.prototype.slice](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/slice).
      *  If provided, `begin` defines a start point for the slice (a negative
      *  `begin` will start from the end of the array) and `end` will act as the
      *  end of the array. If ommitted, `begin` acts like 0 and `end` acts like
@@ -1796,7 +1904,7 @@
     }
 
     /**
-     *  $a.some(array, handler[, context]) -> Boolean
+     *  array.some(array, handler[, context]) -> Boolean
      *  - array (Array): Array or array-like object over which to iterate
      *  - handler (Function): Function to call on each entry of the array.
      *  - context (Object): Context for the handler.
@@ -1805,13 +1913,33 @@
      *  its context. This function is handy for iterating over array-like
      *  objects as well as arrays, something that `Array.prototype.some` can
      *  handle, but the array-like objects rarely have a "some" method.
+     *
+     *      $a.some([1, '2', 'three', 1e4], $n.isNumeric); // -> true
+     *      $a.some(
+     *          {'0': 1, '1': '2', '2': 'three', '3': 1e4, length: 4},
+     *          $n.isNumeric
+     *      ); // -> true
+     *
+     *  A potential "gotcha" is that, according to the standards,
+     *  `Array.prototype.some` will default to returning `false` until a test is
+     *  passed. This has the curious effect of always returning `false` for
+     *  empty arrays.
+     *
+     *      function test(a) {
+     *          return a !== 'real';
+     *      }
+     *      $a.some([], test); // -> false
+     *      var a = [];
+     *      a.length = 10;
+     *      $a.some(a, test); // false
+     *      
      **/
     function some(array, handler, context) {
         return Array.prototype.some.call(array, handler, context);
     }
 
-    /** related to $s.Template
-     *  $s.supplant(string, map[, pattern]) -> String
+    /** related to: Template
+     *  string.supplant(string, map[, pattern]) -> String
      *  - string (String): String to interpolate.
      *  - map (Object): Map of placeholders to replacements for the string.
      *  - pattern (RegExp): Pattern for placeholder.
@@ -1823,7 +1951,7 @@
      *      $s.supplant(string, map); // -> 'Testing Song'
      *
      *  Repeated calls to the same string will be more efficient if created
-     *  by saving a call to `new [[$s.Template]]()` in a variable and later
+     *  by saving a call to `new [[Template]]()` in a variable and later
      *  referencing that variable, but this convenience method can seem less
      *  heavy than constructing a class and evaluating the string, especially
      *  for one-off replacements.
@@ -1833,7 +1961,7 @@
     }
 
     /** related to: $f.debounce
-     *  $f.throttle(func[, wait = 100]) -> Function
+     *  function.throttle(func[, wait = 100]) -> Function
      *  - func (Function): Function to throttle.
      *  - wait (Number): Limit to the frequency of execution.
      *
@@ -1871,8 +1999,8 @@
      *
      *  In the updated example, all arguments will be logged out.
      *
-     *  For a comparison of throttling vs. debouncing, see the example on (this
-     *  page)[http://loopinfinito.com.br/2013/09/24/throttle-e-debounce-patterns-em-javascript/].
+     *  For a comparison of throttling vs. debouncing, see the example on [this
+     *  page](http://loopinfinito.com.br/2013/09/24/throttle-e-debounce-patterns-em-javascript/).
      **/
     function throttle(func, wait) {
 
@@ -1909,7 +2037,7 @@
     }
 
     /**
-     *  $n.times(number, handler[, context]);
+     *  number.times(number, handler[, context])
      *  - number (Number): Number of times to execute the handler.
      *  - handler (Function): Handler to execute.
      *  - context (Object): Context for the handler.
@@ -1948,7 +2076,7 @@
     }
 
     /**
-     *  $n.toNumber(number[, def = NaN]) -> Number
+     *  number.toNumber(number[, def = NaN]) -> Number
      *  - number (Number|String): Number to convert.
      *  - def (Number): Optional default value.
      *
@@ -1956,13 +2084,13 @@
      *  is not numeric, this function will return `def` if `def` is a number or
      *  `NaN` if `def` is not.
      *
-     *      $n.toNumber('10', 5); // -> 10
-     *      $n.toNumber('-10.5', 5); // -> 10
-     *      $n.toNumber('ten', 5); // -> 5
-     *      $n.toNumber('ten'); // -> NaN
+     *      $n.toNumber('10', 5);       // -> 10
+     *      $n.toNumber('-10.5', 5);    // -> 10
+     *      $n.toNumber('ten', 5);      // -> 5
+     *      $n.toNumber('ten');         // -> NaN
      *      $n.toNumber('ten', 'five'); // -> NaN
      *
-     *  See also: [[$n.isNumeric]] and [[$n.toPosInt]].
+     *  See also: [[number.isNumeric]] and [[number.toPosInt]].
      **/
     function toNumber(number, def) {
 
@@ -1973,15 +2101,15 @@
     }
 
     /**
-     *  $n.toPosInt(number) -> Number
+     *  number.toPosInt(number) -> Number
      *  - number (Number): Number to convert.
      *
      *  Converts the given number into a positive integer.
      *
-     *      $n.toPosInt(10); // -> 10
-     *      $n.toPosInt('10'); // -> 10
+     *      $n.toPosInt(10);      // -> 10
+     *      $n.toPosInt('10');    // -> 10
      *      $n.toPosInt('-10.5'); // -> 10
-     *      $n.toPosInt('ten'); // -> NaN
+     *      $n.toPosInt('ten');   // -> NaN
      *
      **/
     function toPosInt(number) {
@@ -1989,7 +2117,7 @@
     }
 
     /**
-     *  $a.unique(array) -> Array
+     *  array.unique(array) -> Array
      *  - array (Array): Array that should be reduced.
      *
      *  Reduces an array so that only unique entries remain.
@@ -2018,7 +2146,7 @@
     }
 
     /**
-     *  $s.uniqid([prefix]) -> String
+     *  string.uniqid([prefix]) -> String
      *  - prefix (String): Optional prefix for the unique ID.
      *
      *  Creates a unique ID.
@@ -2029,9 +2157,9 @@
      *
      *  Optionally a prefix can be given.
      *
-     *      $s.uniqid('--'); // -> something like "--578ce3326a9bf"
-     *      $s.uniqid('--'); // -> something like "--578ce3336a9c0"
-     *      $s.uniqid('--'); // -> something like "--578ce3346a9c1"
+     *      $s.uniqid('pre_'); // -> something like "pre_578ce3326a9bf"
+     *      $s.uniqid('pre_'); // -> something like "pre_578ce3336a9c0"
+     *      $s.uniqid('pre_'); // -> something like "pre_578ce3346a9c1"
      *
      **/
     function uniqid(prefix) {
@@ -2049,11 +2177,11 @@
     }
 
     /**
-     *  $o.values(object) -> Array
+     *  object.values(object) -> Array
      *  - object (Object): Object whos values should be returned.
      *
-     *  Returns the values of the given `object`. This of this as the opposite
-     *  of [[$o.keys]].
+     *  Returns the values of the given `object`. Think of this as the opposite
+     *  of [[object.keys]].
      *
      *      var obj = {foo: 1, bar: 2, baz: 3};
      *      $o.keys(obj); // -> ['foo', 'bar', 'baz']
@@ -2068,16 +2196,16 @@
 
     }
 
-    /** related to $a.exec
-     *  class $a.Context
+    /** related to: array.exec, alias of: array.Context
+     *  class Context
      *
      *  Creates an individual execution context for each function in a given
      *  array of functions. This allows one function in the chain to throw an
      *  `Error` without disrupting the others or preventing them from executing.
-     *  The system works by listening for a [[$a.Context#name]] event firing on
-     *  the [[$a.Context#dummy]] element. When the event fires, the listener
-     *  executes the function stored in [[$a.Context#handler]] (within the
-     *  context of [[$a.Context#context]] and passing in [[$a.Context#args]]).
+     *  The system works by listening for a [[Context#name]] event firing on the
+     *  [[Context#dummy]] element. When the event fires, the listener executes
+     *  the function stored in [[Context#handler]] (within the context of
+     *  [[Context#context]] and passing in [[Context#args]]).
      *
      *  To better understand this, consider an example. Assume that this exists:
      *
@@ -2127,8 +2255,8 @@
      *  Both functions were executed but the error was not seen. This can have
      *  knock-on effects because of the error.
      *
-     *  Now consider using [[$a.exec]] (short-hand for creating and running
-     *  [[$a.Context]]):
+     *  Now consider using [[array.exec]] (short-hand for creating and running
+     *  [[Context]]):
      *
      *      $a.exec(funcs);
      *      // Generates:
@@ -2146,7 +2274,7 @@
     Context = createClass({
 
         /**
-         *  new $a.Context(array[, context[, args]])
+         *  new Context(array[, context[, args]])
          *  - array (Array): Array of functions to execute.
          *  - context (Object): Context for the functions.
          *  - args (Array): Arguments for the functions.
@@ -2154,38 +2282,40 @@
         init: function (array, context, args) {
 
             /**
-             *  $a.Context#dummy -> Element
+             *  Context#dummy -> Element
              *
-             *  Element that will listen for [[$a.Context#name]] events.
+             *  Element that will listen for [[Context#name]] events.
              **/
             this.dummy = document.createElement('div');
 
             /**
-             *  $a.Context#name -> String
+             *  Context#name -> String
              *
              *  Name of the custom event to use.
              **/
             this.name = 'dispatch';
 
             /**
-             *  $a.Context#list -> Array
+             *  Context#list -> Array
              *
              *  List of functions to execute.
              **/
             this.list = array;
 
             /**
-             *  $a.Context#context -> Object|undefined
+             *  Context#context -> Object|undefined
              *
              *  Context for the functions. If no `context` argument was passed
-             *  to [[new $a.Context]], this will be `undefined`.
+             *  to [[new Context]], this will be `undefined`.
              **/
             this.context = context;
 
             /**
-             *  $a.Context#args -> Array
+             *  Context#args -> Array
              *
-             *  Any arguments to pass to the functions when they execute.
+             *  Any arguments to pass to the functions when they execute. If no
+             *  `args` are passed to [[new Context]], this will be an empty
+             *  array.
              **/
             this.args = args || [];
 
@@ -2195,14 +2325,46 @@
         },
 
         /**
-         *  $a.Context#execute()
+         *  Context#execute()
          *
-         *  Executes the current handler (stored in [[$a.Context#handler]]).
-         *  This method is the only place that interacts with
-         *  [[$a.Context#handler]] (although it is set and subsequently
-         *  nullified in [[$a.Context#dispatch]]) so configuring a sub-class of
-         *  [[$a.Context]] to handle something other than a simple array of
-         *  functions usually just means overriding this method.
+         *  Executes the current handler (stored in [[Context#handler]]). This
+         *  method is the only place that interacts with [[Context#handler]]
+         *  (although it is set and subsequently nullified in
+         *  [[Context#dispatch]]) so configuring a sub-class of [[Context]] to
+         *  handle something other than a simple array of functions usually just
+         *  means overriding this method.
+         *
+         *  To better understand this, here is a sub-class of [[Context]] that
+         *  treats the handler as a `object` containing `handler` and `context`
+         *  properties:
+         *
+         *      var Con = $c.create($a.Context, {
+         *
+         *          execute: function () {
+         *
+         *              var handler = this.handler;
+         *
+         *              if (typeof handler.handler === 'function') {
+         *                  handler.handler.apply(handler.context, this.args);
+         *              }
+         * 
+         *          }
+         * 
+         *      });
+         *
+         *  The sub-class would allow us to pass in an array of objects rather
+         *  than simply functions:
+         *
+         *      var con = new Con([
+         *          {handler: function () {}, context: null},
+         *          {handler: function () {}, context: null},
+         *          {handler: function () {}, context: null}
+         *      ]);
+         *      con.run();
+         *      con.freen();
+         *
+         *  This versatility is one of the most powerful features of
+         *  [[Context]] and makes it ideal for handling callbacks.
          **/
         execute: function () {
 
@@ -2215,23 +2377,23 @@
         },
 
         /**
-         *  $a.Context#dispatch(handler)
+         *  Context#dispatch(handler)
          *  - handler (Function): Handler to execute.
          *
          *  Dispatches the handler by firing a custom event on
-         *  [[$a.Context#dummy]].
+         *  [[Context#dummy]].
          **/
         dispatch: function (handler) {
 
             /**
-             *  $a.Context#handler -> Function|null
+             *  Context#handler -> Function|null
              *
-             *  Entry in [[$a.Context#list]] that should be executed. It is
+             *  Entry in [[Context#list]] that should be executed. It is
              *  reset to `null` once it has been executed, ready for the next
-             *  call to [[$a.Context#dispatch]]. Executing
-             *  [[$a.Context#handler]] is done exclusively through
-             *  [[$a.Context#execute]] so it can be easily modified for
-             *  [[$a.Context#handler]] to contain something other than a
+             *  call to [[Context#dispatch]]. Executing
+             *  [[Context#handler]] is done exclusively through
+             *  [[Context#execute]] so it can be easily modified for
+             *  [[Context#handler]] to contain something other than a
              *  function.
              **/
             this.handler = handler;
@@ -2242,7 +2404,7 @@
         },
 
         /**
-         *  $a.Context#run()
+         *  Context#run()
          *
          *  Loops through the stored handlers and dispatches them in turn.
          **/
@@ -2262,7 +2424,7 @@
         },
 
         /**
-         *  $a.Context#free()
+         *  Context#free()
          *
          *  Deletes all stored properties to allow the memory allocated to be
          *  freed up during garbage collection.
@@ -2280,8 +2442,8 @@
 
     });
 
-    /** related to $s.supplant
-     *  class $s.Template
+    /** related to: string.supplant, alias of: string.Template
+     *  class Template
      * 
      *  Handles string interpolation.
      *
@@ -2329,7 +2491,7 @@
      *  New patters can be created by supplying the `pattern` argument. The
      *  pattern should define 3 groups: the character before the placeholder,
      *  the whole placeholder and the key within the placeholder (see
-     *  [[$s.Template#drawFunction]]). For example, here is a replacement using
+     *  [[Template#drawFunction]]). For example, here is a replacement using
      *  two braces.
      *
      *      var string = 'Testing {{framework}}';
@@ -2342,11 +2504,14 @@
      *  Templates](http://api.prototypejs.org/language/Template/), it is based
      *  on an idea by [James
      *  Padolsey](http://james.padolsey.com/javascript/straight-up-interpolation/).
+     *
+     *  The default format `${name}` has been chosen because it matches the
+     *  current recomendation for string interpolation in ES6.
      **/
     Template = createClass({
 
         /**
-         *  new $s.Template(string[, pattern])
+         *  new Template(string[, pattern])
          *  - string (String): String to interpolate.
          *  - map (Object): Map of placeholders to replacements for the string.
          *  - pattern (RegExp): Pattern for placeholder.
@@ -2354,17 +2519,18 @@
         init: function (string, pattern) {
 
             /**
-             *  $s.Template#string -> String
+             *  Template#string -> String
              *
              *  String that will be evaluated.
              **/
             this.string = string;
 
             /**
-             *  $s.Template#pattern -> RegExp
+             *  Template#pattern -> RegExp
              *
              *  Regular expression identifying the parts of
-             *  [[$s.Template#string]] to replace.
+             *  [[Template#string]] to replace. See [[Template]] for details
+             *  about replacing this pattern.
              **/
             this.pattern = pattern instanceof RegExp ?
                     pattern :
@@ -2377,10 +2543,10 @@
         },
 
         /**
-         *  $s.Template#getCached() -> Function
+         *  Template#getCached() -> Function
          *
-         *  Gets the cached version of the [[$s.Template#evaluate]] function for
-         *  the given [[$s.Template#string]], creating the function (and caching
+         *  Gets the cached version of the [[Template#evaluate]] function for
+         *  the given [[Template#string]], creating the function (and caching 
          *  it) if it does not yet exist.
          **/
         getCached: function () {
@@ -2396,11 +2562,11 @@
         },
 
         /**
-         *  $s.Template#createFunc() -> Function
+         *  Template#createFunc() -> Function
          *
          *  Creates the function that will replace key parts of
-         *  [[$s.Template#string]] with the map of replacements passed to
-         *  [[$s.Template#evaluate]].
+         *  [[Template#string]] with the map of replacements passed to
+         *  [[Template#evaluate]].
          **/
         createFunc: function () {
 
@@ -2425,17 +2591,17 @@
         },
 
         /**
-         *  $s.Template#getBasic(match) -> String
+         *  Template#getBasic(match) -> String
          *  - match (String): Character to escape.
          *
-         *  Returns the escaped character from the [[$s.Template.basic]] object.
+         *  Returns the escaped character from the [[Template.basic]] object.
          **/
         getBasic: function (match) {
             return Template.basic[match];
         },
 
         /**
-         *  $s.Template#drawFunction(complete, prefix, whole, key) -> String
+         *  Template#drawFunction(complete, prefix, whole, key) -> String
          *  - complete (String): Complete match.
          *  - prefix (String): Character before the match.
          *  - whole (String): Complete placeholder match.
@@ -2443,6 +2609,8 @@
          *
          *  Draws the function that will replaces placeholder. This function is
          *  passed into `new Function` with `o` as the replacement object name.
+         *  This method is passed the matches from [[Template#pattern]] - see
+         *  [[Template]] for more information.
          **/
         drawFunction: function (complete, prefix, whole, key) {
 
@@ -2456,15 +2624,15 @@
         },
 
         /**
-         *  $s.Template#evaluate(map) -> String
+         *  Template#evaluate(map) -> String
          *  - map (Object): Map of placeholders to replacements.
          *
-         *  Replaces the contents of [[$s.Template#string]] with the entries
+         *  Replaces the contents of [[Template#string]] with the entries
          *  given in the map.
          *
          *  Before being initialised, this method will throw an `Error`. This is
          *  because the replacement function needs to be created using
-         *  [[$s.Template#createFunc]] before the template can be correctly
+         *  [[Template#createFunc]] before the template can be correctly
          *  evaluated.
          **/
         evaluate: function () {
@@ -2476,13 +2644,13 @@
     augment(Template, {
 
         /**
-         *  $s.Template.basic -> Object
+         *  Template.basic -> Object
          *
          *  A simple map of basic strings to replace with escaped versions. This
          *  prevents the escaped values being lost during the
-         *  [[$s.Template#evaluate]] execution. As the cache relies upon
+         *  [[Template#evaluate]] execution. As the cache relies upon
          *  functions generated using these, if this is altered,
-         *  [[$s.Template.cache]] should be emptied.
+         *  [[Template.cache]] should be emptied.
          **/
         basic: {
             '\\':     '\\\\',
@@ -2493,22 +2661,22 @@
         },
 
         /**
-         *  $s.Template.cache -> Object
+         *  Template.cache -> Object
          *
-         *  A simple cache of functions created by [[$s.Template#createFunc]].
-         *  This cache helps reduce additional work for [[$s.Template]]
+         *  A simple cache of functions created by [[Template#createFunc]].
+         *  This cache helps reduce additional work for [[Template]]
          *  instances that were not saved in a variable or created using
-         *  [[$s.supplant]]. It should be treated as **private**, but if a
-         *  future extension overrides [[$s.Template#createFunc]], it may be
+         *  [[string.supplant]]. It should be treated as **private**, but if a
+         *  future extension overrides [[Template#createFunc]], it may be
          *  useful to be able to empty this cache.
          **/
         cache: {},
 
         /**
-         *  $s.Template.pattern -> RegExp
+         *  Template.pattern -> RegExp
          *
          *  Default pattern used for times when no pattern is passed to the
-         *  [[$s.Template]] constructor.
+         *  [[Template]] constructor.
          **/
         pattern: /(^|.|\r|\n)(\$\{(.*?)\})/
 
@@ -2561,16 +2729,15 @@
     });
 
     augment($o, {
-        addConfig:     addConfig,
-        clone:         clone,
-        each:          each,
-        extend:        extend,
-        is:            is,
-        isEmpty:       isEmptyObject,
-        keys:          keys,
-        makeMaskCheck: makeMaskCheck,
-        makeOwns:      makeOwns,
-        values:        values
+        addConfig: addConfig,
+        clone:     clone,
+        each:      each,
+        extend:    extend,
+        is:        is,
+        isEmpty:   isEmptyObject,
+        keys:      keys,
+        makeOwns:  makeOwns,
+        values:    values
     });
 
     augment($o, {

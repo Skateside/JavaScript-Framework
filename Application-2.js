@@ -21,6 +21,8 @@
          *  - [[Application#startAll]] to start all modules.
          *  - [[Application#stopAll]] to stop all modules.
          *
+         *  The modules are stored in [[Application#modules]].
+         *
          *  ## Helpers
          *
          *  Helpers are collections of related functionality that assist the
@@ -32,6 +34,8 @@
          *
          *  - [[Application#addHelper]] to add a helper.
          *  - [[Application#getHelper]] to get a helper.
+         *
+         *  The helpers are stored in [[Application#helpers]].
          *
          *  ## Configuration
          *
@@ -53,7 +57,7 @@
          *  Errors can stop the application. There are four errors as well as a
          *  generic method. They are:
          *
-         *  - [[Application#error]] - generic error method, though not
+         *  - [[Application#error]] - Generic error method, though not
          *    particularly useful.
          *  - [[Application#fatal]] - Fatal errors that require the developer to
          *    fix.
@@ -65,14 +69,23 @@
          *    piece of functionality to no longer current any may be removed in
          *    future.
          *
-         *  ## Storing
+         *  Error constructors are stored in the [[Application.errors]] object.
          *
-         *  The Application has two additional methods to store information.
-         *  These exist mainly for helpers.
+         *  - [[Application.errors.Error]] - Generic error constructor.
+         *  - [[Application.errors.Fatal]] - Fatal error constructor.
+         *  - [[Application.errors.Warning]] - Warning error constructor.
+         *  - [[Application.errors.Notice]] - Notice error constructor.
+         *  - [[Application.errors.Deprecated]] - Deprecated error constructor.
          *
-         *  - [[Application#store]] to set data.
-         *  - [[Application#access]] to get data.
+         *  Simple functions exist to test for these errors. The exist as static
+         *  methods and instance methods - both work the same.
          *
+         *  - [[Application#isError]] / [[Application.isError]]
+         *  - [[Application#isFatal]] / [[Application.isFatal]]
+         *  - [[Application#isWarning]] / [[Application.isWarning]]
+         *  - [[Application#isNotice]] / [[Application.isNotice]]
+         *  - [[Application#isDeprecated]] / [[Application.isDeprecated]]
+         * 
          *  ## Sandboxes
          *
          *  A sandbox is passed to each module and helper as they're created.
@@ -134,24 +147,33 @@
 
     function createError(type, baseError) {
 
-        var Base = typeof baseError === 'string' ?
+        var upper = ucfirst(type),
+
+            Base = typeof baseError === 'string' ?
                 Application.errors[baseError] :
                 (baseError || Error),
 
             NewError = function (message) {
 
-                this.name    = 'Application' + ucfirst(type) + 'Error';
+                this.name    = 'Application' + upper + 'Error';
                 this.message = message;
 
+            },
+
+            isError = function (ex) {
+                return ex instanceof NewError;
             };
 
         NewError.prototype = Object.create(Base.prototype);
 
-        Application.errors[type] = NewError;
+        Application.errors[upper] = NewError;
 
         Application.prototype[type] = function (message) {
             throw new Application.errors[type](message);
         };
+
+        Application['is' + upper] = isError;
+        Application.prototype['is' + upper] = isError;
 
     }
 
@@ -172,7 +194,7 @@
          *  default - see [[Application.Sandbox#_addMethod]] for full details).
          *  The [[Application.Sandbox]] does have some of its own methods and
          *  properties to facilitate construction - these are all prefixed with
-         *  an underscore (`_`) to help avoid collisions. Although they are
+         *  an underscore ( `_` ) to help avoid collisions. Although they are
          *  publicly available, they should be considered **private** as they
          *  will be very little use to a module or helper.
          **/
@@ -207,12 +229,12 @@
          *  [[Application.Sandbox#_decodeMethod]]) that allows arguments to be
          *  bound as well.
          *
-         *      sandbox.addMethod('method')
+         *      sandbox.addMethod('method');
          *      // Adds a "method" method to the sandbox instance. "method" is
          *      // taken from Application.prototype, thus sandbox.method() is
          *      // the same as application.method()
          *
-         *      sandbox.addMethod('method(name)')
+         *      sandbox.addMethod('method(name)');
          *      // Adds a "method" method to the sandbox instance. "method" is
          *      // taken from Application.prototype and automatically passes in
          *      // sandbox.name, thus sandbox.method() is the same as
@@ -241,7 +263,7 @@
         /**
          *  Application.Sandbox#_addProperty(name, value)
          *  - name (String): Name of the property to add.
-         *  - value (*): Value of the property to add.
+         *  - value (?): Value of the property to add.
          *
          *  Adds a property to the current [[Application.Sandbox]] instance. The
          *  added property is non-enumerable, non-configurable and read-only
@@ -260,7 +282,7 @@
         },
 
         /**
-         *  Application.Sandbox#_getProperty(property) -> *
+         *  Application.Sandbox#_getProperty(property) -> ?
          *  - property (String): Name of the property to return.
          *
          *  Returns the property requested. This mainly exists to save
@@ -303,7 +325,7 @@
     addProto({
 
         /**
-         *  new Application
+         *  new Application()
          *
          *  Creates a new application.
          **/
@@ -333,17 +355,6 @@
              *  to alter it.
              **/
             this.config = Object.create(config);
-
-            /**
-             *  Application#data -> Object
-             *
-             *  Storage for helpers. Occasionally a helper may need to store
-             *  information across instances (though within the same
-             *  [[Application]] instance). The [[Application#store]] and
-             *  [[Application#access]] methods allow this to happen by
-             *  manipulating the [[Application#data]] property.
-             **/
-            this.data = {};
 
         }
 
@@ -414,8 +425,8 @@
          *  have any other methods.
          *
          *  Here is an example module that accesses helpers and shows some
-         *  functionality.
-         *
+         *  functionality:
+         *  
          *      app.register('click-me', function (app) {
          *
          *          'use strict';
@@ -468,7 +479,11 @@
          *          };
          * 
          *      });
-         * 
+         *
+         *  Aside: the other two levels of configuration are global
+         *  configuration (from [[Application.setConfig]] and
+         *  [[Application.getConfig]]) and local configuration (from
+         *  [[Application#setConfig]] and [[Application#getConfig]]).
          **/
         register: function (name, factory) {
 
@@ -488,6 +503,27 @@
          *  Activated a module, executing its `start` method. If the module
          *  cannot be found, a fatal error is thrown. If the module is already
          *  active, no action is taken.
+         *
+         *  The better understand this, consider the following module:
+         *
+         *      app.register('module', function (app) {
+         *          return {
+         *              start: function () {
+         *                  console.log('module started');
+         *              },
+         *              stop: function () {
+         *                  console.log('module stopped');
+         *              }
+         *          };
+         *      });
+         *
+         *  With only this module registered, this method will have the
+         *  following effects:
+         *
+         *      app.start('not-real'); // -> throw fatal error.
+         *      app.start('module');   // -> logs "module started".
+         *      app.start('module');   // -> does nothing, module active.
+         *      
          **/
         start: function (name) {
 
@@ -513,6 +549,27 @@
          *  Stops a module, executing its `stop` method. If the module isn't
          *  recognised, a fatal error is thrown. If the module is not active, no
          *  action is taken.
+         *
+         *  The better understand this, consider the following module:
+         *
+         *      app.register('module', function (app) {
+         *          return {
+         *              start: function () {
+         *                  console.log('module started');
+         *              },
+         *              stop: function () {
+         *                  console.log('module stopped');
+         *              }
+         *          };
+         *      });
+         *
+         *  With only this module registered and already started, this method
+         *  will have the following effects:
+         *
+         *      app.stop('not-real'); // -> throw fatal error.
+         *      app.stop('module');   // -> logs "module stopped".
+         *      app.stop('module');   // -> does nothing, module inactive.
+         *      
          **/
         stop: function (name) {
 
@@ -527,7 +584,7 @@
 
         },
 
-        /**
+        /** related to: Application#start
          *  Application#startAll()
          *
          *  Activates all registered modules.
@@ -536,7 +593,7 @@
             Object.keys(this.modules).forEach(this.start, this);
         },
 
-        /**
+        /** related to: Application#stop
          *  Application#stopAll()
          *
          *  Deactivates all registered modules.
@@ -560,7 +617,7 @@
          *  related functionality that will aid the modules. They have access to
          *  more of the application than a module does. Unlike a module, a
          *  helper does not have a constructor or destructor method - there are
-         *  no required methods. An template for a helper looks like this:
+         *  no required methods. A template for a helper looks like this:
          *
          *      app.addHelper('helper-name', function (app) {
          *
@@ -574,11 +631,11 @@
          *  A helper can contain any functionality. Examples include, but are
          *  not limited to:
          *
-         *      - DOM manipulation
-         *      - Event listeners
-         *      - Variable manipulation
-         *      - Asynchronous requests
-         *      - Promises
+         *  - DOM manipulation
+         *  - Event listeners
+         *  - Variable manipulation
+         *  - Asynchronous requests
+         *  - Promises
          *
          *  Helpers can also be used to save re-writing functionality in
          *  multiple modules.
@@ -591,7 +648,10 @@
                 this.fatal('Helper "' + name + '" already exists');
             }
 
-            helpers[name] = factory;
+            helpers[name] = {
+                factory:  factory,
+                instance: null
+            }
 
         },
 
@@ -611,7 +671,15 @@
                 this.fatal('Helper "' + name + '" does not exist');
             }
 
-            return helper(new Application.Sandbox(this, methods, name));
+            if (!helper.instance) {
+
+                helper.instance = helper.factory(
+                    new Application.Sandbox(this, methods, name)
+                );
+
+            }
+
+            return extend({}, helper.instance);
 
         }
 
@@ -624,7 +692,7 @@
         /**
          *  Application.setConfig(name, value)
          *  - name (String): Name of the configuration setting.
-         *  - value (*): Configuration value.
+         *  - value (?): Configuration value.
          *
          *  Sets global configuration. Global configuration is shared across all
          *  [[Application]] instances and can be overrideen by local
@@ -645,7 +713,7 @@
         },
 
         /**
-         *  Application.getConfig(name) -> *
+         *  Application.getConfig(name) -> ?
          *  - name (String): Name of the configuration setting.
          *
          *  Retrieves the global configuration setting associated with the given
@@ -662,7 +730,7 @@
         /**
          *  Application#setConfig(name, value)
          *  - name (String): Name of the configuration setting.
-         *  - value (*): Configuration value.
+         *  - value (?): Configuration value.
          *
          *  Sets local configuration. Local configuration only affects the
          *  current [[Application]] instance. An error is thrown if attempting
@@ -679,7 +747,7 @@
         },
 
         /**
-         *  Application#getConfig(name) -> *
+         *  Application#getConfig(name) -> ?
          *  - name (String): Name of the configuration setting.
          *
          *  Retrieves the local configuration setting associated with the given
@@ -703,36 +771,82 @@
          *      try {
          *          func();
          *      } catch (ex) {
-         *          if (ex instanceOf Application.errors.error) {
+         *          if (ex instanceOf Application.errors.Error) {
          *              // Application error
          *          }
          *      }
          *
+         *  There are helper functions for checking whether the thrown exception
+         *  if an Application error:
+         *
+         *      try {
+         *          func();
+         *      } catch (ex) {
+         *          if (Application.isError(ex)) {
+         *              // Application error
+         *          }
+         *      }
+         *
+         *  Error-checking functions exist as static properties and instance
+         *  methods. They each take a single argument and return a `Boolean`.
+         *  The error-checking functions are:
+         *
+         *  - [[Application.isError]] / [[Application#isError]]
+         *  - [[Application.isFatal]] / [[Application#isFatal]]
+         *  - [[Application.isWarning]] / [[Application#isWarning]]
+         *  - [[Application.isNotice]] / [[Application#isNotice]]
+         *  - [[Application.isDeprecated]] / [[Application#isDeprecated]]
+         * 
          **/
         errors: {}
 
     });
 
     /** related to: Application#error
-     *  Application.errors.error -> Error
+     *  Application.errors.Error -> Error
      *
      *  Generic error.
      **/
-    /** related to: Application.errors.error
+    /** related to: Application.errors.Error
      *  Application#error(message)
      *  - message (String): Message for the error.
      *
      *  Throws a generic error. Use of this error method should be avoided if
      *  possible as the other error methods are more specific and useful.
+     *
+     *  The `name` of a generic error is `ApplicationErrorError`.
+     **/
+    /** alias of: Application.isError
+     *  Application#isError(exception) -> Boolean
+     *  - exception (Error): Exception to test.
+     *
+     *  Checks to see if the given exception is an Application error, returning
+     *  `true` if it is.
+     *  
+     *      try {
+     *          func();
+     *      } catch (ex) {
+     *          if (app.isError(ex)) {
+     *              // Application error
+     *          }
+     *      }
+     *
+     *  This method is unique in that it will match all Application error types.
+     **/
+    /** alias of: Application#isError
+     *  Application.isError(exception) -> Boolean
+     *  - exception (Error): Exception to test.
+     *
+     *  Static alias of the instance method [[Application#isError]].
      **/
     createError('error');
 
     /** related to: Application#fatal
-     *  Application.errors.fatal -> Error
+     *  Application.errors.Fatal -> Error
      *
      *  Fatal error.
      **/
-    /** related to: Application.errors.fatal
+    /** related to: Application.errors.Fatal
      *  Application#fatal(message)
      *  - message (String): Message for the error.
      *
@@ -744,14 +858,36 @@
      *      app.fatal('I am a fatal error');
      *      
      **/
+    /** alias of: Application.isFatal
+     *  Application#isFatal(exception) -> Boolean
+     *  - exception (Error): Exception to test.
+     *
+     *  Checks to see if the given exception is an Application fatal error,
+     *  returning `true` if it is.
+     *  
+     *      try {
+     *          func();
+     *      } catch (ex) {
+     *          if (app.isFatal(ex)) {
+     *              // Fatal error
+     *          }
+     *      }
+     *
+     **/
+    /** alias of: Application#isFatal
+     *  Application.isFatal(exception) -> Boolean
+     *  - exception (Error): Exception to test.
+     *
+     *  Static alias of the instance method [[Application#isFatal]].
+     **/
     createError('fatal', 'error');
 
     /** related to: Application#warning
-     *  Application.errors.warning -> Error
+     *  Application.errors.Warning -> Error
      *
      *  Warning error.
      **/
-    /** related to: Application.errors.warning
+    /** related to: Application.errors.Warning
      *  Application#warning(message)
      *  - message (String): Message for the error.
      *
@@ -763,14 +899,36 @@
      *      app.warning('I am a warning error');
      *      
      **/
+    /** alias of: Application.isWarning
+     *  Application#isWarning(exception) -> Boolean
+     *  - exception (Error): Exception to test.
+     *
+     *  Checks to see if the given exception is an Application warning error,
+     *  returning `true` if it is.
+     *  
+     *      try {
+     *          func();
+     *      } catch (ex) {
+     *          if (app.isWarning(ex)) {
+     *              // Warning error
+     *          }
+     *      }
+     *
+     **/
+    /** alias of: Application#isWarning
+     *  Application.isWarning(exception) -> Boolean
+     *  - exception (Error): Exception to test.
+     *
+     *  Static alias of the instance method [[Application#isWarning]].
+     **/
     createError('warning', 'error');
 
     /** related to: Application#notice
-     *  Application.errors.notice -> Error
+     *  Application.errors.Notice -> Error
      *
      *  Notice error.
      **/
-    /** related to: Application.errors.notice
+    /** related to: Application.errors.Notice
      *  Application#notice(message)
      *  - message (String): Message for the error.
      *
@@ -782,14 +940,36 @@
      *      app.notice('I am a notice error');
      *      
      **/
+    /** alias of: Application.isNotice
+     *  Application#isNotice(exception) -> Boolean
+     *  - exception (Error): Exception to test.
+     *
+     *  Checks to see if the given exception is an Application notice error,
+     *  returning `true` if it is.
+     *  
+     *      try {
+     *          func();
+     *      } catch (ex) {
+     *          if (app.isNotice(ex)) {
+     *              // Notice error
+     *          }
+     *      }
+     *
+     **/
+    /** alias of: Application#isNotice
+     *  Application.isNotice(exception) -> Boolean
+     *  - exception (Error): Exception to test.
+     *
+     *  Static alias of the instance method [[Application#isNotice]].
+     **/
     createError('notice', 'error');
 
     /** related to: Application#deprecated
-     *  Application.errors.deprecated -> Error
+     *  Application.errors.Deprecated -> Error
      *
      *  Deprecated error.
      **/
-    /** related to: Application.errors.deprecated
+    /** related to: Application.errors.Deprecated
      *  Application#deprecated(message)
      *  - message (String): Message for the error.
      *
@@ -801,63 +981,29 @@
      *      app.deprecated('I am a deprecated error');
      *      
      **/
+    /** alias of: Application.isDeprecated
+     *  Application#isDeprecated(exception) -> Boolean
+     *  - exception (Error): Exception to test.
+     *
+     *  Checks to see if the given exception is an Application deprecated error,
+     *  returning `true` if it is.
+     *  
+     *      try {
+     *          func();
+     *      } catch (ex) {
+     *          if (app.isDeprecated(ex)) {
+     *              // Deprecated error
+     *          }
+     *      }
+     *
+     **/
+    /** alias of: Application#isDeprecated
+     *  Application.isDeprecated(exception) -> Boolean
+     *  - exception (Error): Exception to test.
+     *
+     *  Static alias of the instance method [[Application#isDeprecated]].
+     **/
     createError('deprecated', 'error');
-
-    // Storing.
-
-    addProto({
-
-        /** related to Application#access
-         *  Application#store(name, key, value)
-         *  - name (String): Name of the helper.
-         *  - key (String): Name key for the data.
-         *  - value (?): Value of the data.
-         *
-         *  Each helper has access to this method which can be used to store
-         *  information across each helper's instance. The `name` is
-         *  automatically set by the [[Application.Sandbox]].
-         *
-         *      add.addHelper('helper', function (app) {
-         *          var data = {};
-         *          app.store('data', data);
-         *      });
-         *      
-         **/
-        store: function (name, key, value) {
-
-            var data = this.data[name];
-
-            if (!data) {
-                data = this.data[name] = {};
-            }
-
-            data[key] = value;
-
-        },
-
-        /** related to Application#store
-         *  Application#access(name, key, value)
-         *  - name (String): Name of the helper.
-         *  - key (String): Name key for the data.
-         *
-         *  Each hepler has access to this method which can be used to access
-         *  information stored by another instance. The `name` is automatically
-         *  set by the [[Application.Sandbox]].
-         *
-         *      add.addHelper('helper', function (app) {
-         *          var data = app.access('data');
-         *      });
-         *      
-         **/
-        access: function (name, key) {
-
-            var data = this.data[name] || {};
-
-            return data[key];
-
-        }
-
-    });
 
     // Sandboxes.
 
@@ -873,9 +1019,26 @@
          *  [[Application.Sandbox]] will have. The strings can have arguments
          *  automatically passed to the methods - see
          *  [[Application.Sandbox#_addMethod]] for full details.
+         *
+         *  Currently the white-list contains:
+         *
+         *  - [[Application#error]]
+         *  - [[Application#fatal]]
+         *  - [[Application#warning]]
+         *  - [[Application#notice]]
+         *  - [[Application#deprecated]]
+         *  - [[Application#getHelper]]
+         *  - [[Application#getConfig]]
+         *  - [[Application#isError]]
+         *  - [[Application#isFatal]]
+         *  - [[Application#isWarning]]
+         *  - [[Application#isNotice]]
+         *  - [[Application#isDeprecated]]
+         *
          **/
         moduleMethods: ['error', 'fatal', 'warning', 'notice', 'deprecated',
-            'getHelper', 'getConfig'],
+            'getHelper', 'getConfig', 'isError', 'isFatal', 'isWarning',
+            'isNotice', 'isDeprecated'],
 
         /**
          *  Application.helperMethods -> Array
@@ -884,9 +1047,28 @@
          *  [[Application.Sandbox]] will have. The strings can have arguments
          *  automatically passed to the methods - see
          *  [[Application.Sandbox#_addMethod]] for full details.
+         *
+         *  Currently the white-list contains:
+         *
+         *  - [[Application#error]]
+         *  - [[Application#fatal]]
+         *  - [[Application#warning]]
+         *  - [[Application#notice]]
+         *  - [[Application#deprecated]]
+         *  - [[Application#getHelper]]
+         *  - [[Application#getConfig]]
+         *  - [[Application#isError]]
+         *  - [[Application#isFatal]]
+         *  - [[Application#isWarning]]
+         *  - [[Application#isNotice]]
+         *  - [[Application#isDeprecated]]
+         *
          **/
+        //helperMethods: ['error', 'fatal', 'warning', 'notice', 'deprecated',
+        //    'getHelper', 'getConfig', 'access(_name)', 'store(_name)']
         helperMethods: ['error', 'fatal', 'warning', 'notice', 'deprecated',
-            'getHelper', 'getConfig', 'access(_name)', 'store(_name)']
+            'getHelper', 'getConfig', 'isError', 'isFatal', 'isWarning',
+            'isNotice', 'isDeprecated']
 
     });
 

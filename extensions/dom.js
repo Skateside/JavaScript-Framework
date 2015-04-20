@@ -156,7 +156,7 @@ app.addHelper('dom', function (app) {
          *  Be warned that not all `by*` methods return an array-like structure
          *  but the `getBy*` will always return an array.
          *
-         *  If you wish to pass a function to the elements, use [[$a.forEach]]:
+         *  If you wish to pass a function to the elements, use `$a.forEach`:
          *
          *      $a.forEach(dom.byClass('one'), function (elem) {
          *          dom.addClass(elem, 'two');
@@ -176,31 +176,23 @@ app.addHelper('dom', function (app) {
      *
      *  The `by*` methods are:
      *
-     *  - `[[dom.byId]](id)` - selects an element by ID.
-     *  - `[[dom.byTag]](tag[, context = document])` - selects elements by tag
-     *    name.
-     *  - `[[dom.byName]](name)` - selects elements by name attribute.
-     *  - `[[dom.byClass]](className[, context = document])` - selects elements
-     *    by class name.
-     *  - `[[dom.byQuery]](query[, context = document])` - selects an element by
-     *    query selector.
-     *  - `[[dom.byQueryAll]](query[, context = document])` - selects elements
-     *    by query selector.
+     *  - [[dom.byId]] - selects an element by ID.
+     *  - [[dom.byTag]] - selects elements by tag name.
+     *  - [[dom.byName]] - selects elements by name attribute.
+     *  - [[dom.byClass]] - selects elements by class name.
+     *  - [[dom.byQuery]] - selects an element by query selector.
+     *  - [[dom.byQueryAll]] - selects elements by query selector.
      *
      *  Each method has a corresponding `getBy*` method that works in exactly 
      *  the same way, except that the returned value is always an `Array`. The
      *  complete list of `getBy*` methods are:
      *
-     *  - `[[dom.getById]](id)` - selects an element by ID.
-     *  - `[[dom.getByTag]](tag[, context = document])` - selects elements by
-     *    tag name.
-     *  - `[[dom.getByName]](name)` - selects elements by name attribute.
-     *  - `[[dom.getByClass]](className[, context = document])` - selects
-     *    elements by class name.
-     *  - `[[dom.getByQuery]](query[, context = document])` - selects an element
-     *    by query selector.
-     *  - `[[dom.getByQueryAll]](query[, context = document])` - selects
-     *    elements by query selector.
+     *  - [[dom.getById]] - selects an element by ID.
+     *  - [[dom.getByTag]] - selects elements by tag name.
+     *  - [[dom.getByName]] - selects elements by name attribute.
+     *  - [[dom.getByClass]] - selects elements by class name.
+     *  - [[dom.getByQuery]] - selects an element by query selector.
+     *  - [[dom.getByQueryAll]] - selects elements by query selector.
      *
      *  Additionally, [[dom.getByQueryAll]] has the alias [[dom.get]] for
      *  simplicity and ease of typing.
@@ -223,7 +215,7 @@ app.addHelper('dom', function (app) {
          *      dom.byId('one'); // -> <div id="one">
          *      dom.byId('two'); // -> null
          *
-         *  This method has a complimentary method called [[dom.getById()]] 
+         *  This method has a complimentary method called [[dom.getById]] 
          *  which takes the same arguments but will always return an `Array`.
          *  If the element cannot be found, an empty `Array` is returned.
          *
@@ -271,10 +263,10 @@ app.addHelper('dom', function (app) {
          *      // -> NodeList[<div id="four">, <div id="five">]
          *
          *  Be aware that a `NodeList` is not an `Array`, although it possesses
-         *  many similarities. The [[$a]] methods will work with a `NodeList`
+         *  many similarities. The `$a` methods will work with a `NodeList`
          *  correctly but native `Array` methods do not exist. If a genuine
          *  `Array` is required, this method has a complimentary method called
-         *  [[dom.getByTag()]] which takes the same arguments.
+         *  [[dom.getByTag]] which takes the same arguments.
          * 
          *      dom.getByTag('div'); // -> Array[<div id="one">, <div id="two">,
          *                           //     <div id="four">, <div id="five">]
@@ -313,7 +305,7 @@ app.addHelper('dom', function (app) {
          *
          *      dom.byQueryAll('[name="one"]', dom.byId('context'));
          *
-         *  Be aware that a `NodeList` is not the same as an `Array`. The [[$a]]
+         *  Be aware that a `NodeList` is not the same as an `Array`. The `$a`
          *  methods will work with a `NodeList` but native `Array` methods will
          *  not work. If a genuine `Array` is required, there is a complimentary
          *  method called [[dom.getByName]] which takes the same arguments.
@@ -349,10 +341,10 @@ app.addHelper('dom', function (app) {
          *      dom.byClass('four'); // -> NodeList[]
          *      dom.byClass('one', dom.byId('c')); // -> NodeList[<div id="d">]
          *
-         *  Be aware that a `NodeList` is not the same as an `Array`. The [[$a]]
+         *  Be aware that a `NodeList` is not the same as an `Array`. The `$a`
          *  methods will work with a `NodeList` but native `Array` methods will
          *  not work. If a genuine `Array` is required, there is a complimentary
-         *  method called [[dom.getByClassName]] which takes the same arguments.
+         *  method called [[dom.getByClass]] which takes the same arguments.
          *
          *      dom.getByClass('one');
          *      // -> Array[<div id="a">, <div id="b">, <div id="d">]
@@ -400,7 +392,7 @@ app.addHelper('dom', function (app) {
             return (context || document).querySelector(selector);
         },
 
-        /** alias of dom.get
+        /**
          *  dom.byQueryAll(selector[, context = document]) -> NodeList
          *  - selector (String): CSS selector to identify the elements.
          *  - context (Element): Context for the search.
@@ -423,7 +415,7 @@ app.addHelper('dom', function (app) {
          *      dom.byQueryAll('.one', dom.byId('c'));
          *      // -> NodeList[<div id="d">]
          *
-         *  Be aware that a `NodeList` is not the same as an `Array`. The [[$a]]
+         *  Be aware that a `NodeList` is not the same as an `Array`. The `$a`
          *  methods will work with a `NodeList` but the native `Array` methods
          *  will not work. If a genuine `Array` is needed, there is a
          *  complimentary method called [[dom.getByQueryAll]] that takes the
@@ -475,7 +467,7 @@ app.addHelper('dom', function (app) {
      *
      *  Returns the results of [[dom.byQuery]] as an `Array`.
      **/
-    /**
+    /** alias of: dom.get
      *  dom.getByQueryAll(id[, context = document]) -> Array
      *
      *  Returns the results of [[dom.byQueryAll]] as an `Array`.
@@ -494,7 +486,7 @@ app.addHelper('dom', function (app) {
 
     });
 
-    /** alias of dom.getByQueryAll
+    /** alias of: dom.getByQueryAll
      *  dom.get(selector[, context = document]) -> Array
      **/
     select.get = select.getByQueryAll;
@@ -998,7 +990,7 @@ app.addHelper('dom', function (app) {
         },
 
         /**
-         *  dom.attrHook
+         *  dom.attrHook -> Object
          *
          *  Sometimes the attributes need specific functionality instead of
          *  simply setting an attribute to given value. For these situations,
@@ -1020,7 +1012,7 @@ app.addHelper('dom', function (app) {
         },
 
         /**
-         *  dom.nameHook
+         *  dom.nameHook -> Object
          *
          *  Certain elements require more work than a simple
          *  `document.createElement` map. For these situations, a `nameHook` is
@@ -1158,7 +1150,7 @@ app.addHelper('dom', function (app) {
          *
          *  ... and this variable exists (see also [[dom.byId]]):
          * 
-         *     var elem = dom.byId('two');
+         *      var elem = dom.byId('two');
          *
          *  ... then this function may be called like this:
          *
@@ -1507,8 +1499,8 @@ app.addHelper('dom', function (app) {
         },
 
         /**
-         *  dom.getAttr(elem) -> Object
          *  dom.getAttr(elem, attr) -> String
+         *  dom.getAttr(elem) -> Object
          *  - elem (Element): Element whose attribute should be returned.
          *  - attr (String): Attribute to return.
          * 

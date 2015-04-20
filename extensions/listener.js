@@ -8,8 +8,10 @@ app.addHelper('listener', function (app) {
 
     'use strict';
 
-    var $a = Core.get('array'),
-        $c = Core.get('class'),
+    var $a = app.getHelper('array'),
+        $c = app.getHelper('class'),
+
+        events = {},
 
         Context = $c.create($a.Context, {
 
@@ -26,14 +28,14 @@ app.addHelper('listener', function (app) {
         });
 
     // Accesses events for all listeners.
-    function getEvents() {
-        return app.access('events') || {};
-    }
+    //function getEvents() {
+    //    return app.access('events') || {};
+    //}
 
     // Sets the events for all listeners.
-    function setEvents(events) {
-        app.store('events', events);
-    }
+    //function setEvents(events) {
+    //    app.store('events', events);
+    //}
 
     return {
 
@@ -55,8 +57,7 @@ app.addHelper('listener', function (app) {
          **/
         listen: function (event, handler, context) {
 
-            var events = getEvents(),
-                evt    = events[event];
+            var evt = events[event];
 
             if (!evt) {
                 evt = events[event] = [];
@@ -81,10 +82,9 @@ app.addHelper('listener', function (app) {
          **/
         unlisten: function (event, handler) {
 
-            var events = getEvents(),
-                evt    = events[event] || [],
-                i      = 0,
-                il     = evt.length;
+            var evt = events[event] || [],
+                i   = 0,
+                il  = evt.length;
 
             while (i < il) {
 
@@ -110,8 +110,7 @@ app.addHelper('listener', function (app) {
          **/
         notify: function (event, data) {
 
-            var events  = getEvents(),
-                arg     = {name: event},
+            var arg     = {name: event},
                 context = new Context(
                     events[event] || [],
                     null,
