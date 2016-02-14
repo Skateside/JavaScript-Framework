@@ -89,14 +89,15 @@ app.addHelper('listener', function (app) {
             while (i < il) {
 
                 if (evt[i].handler === handler) {
-                    evt.splice(i, 1);
+                    //evt.splice(i, 1);
+                    delete evt[i];
                 }
 
                 i += 1;
 
             }
 
-            setEvents(events);
+            setEvents($a.compact(events));
 
         },
 

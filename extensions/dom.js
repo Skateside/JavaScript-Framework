@@ -478,7 +478,11 @@ app.addHelper('dom', function (app) {
 
         select[getName] = key === 'byId' || key === 'byQuery' ?
             function () {
-                return [this[key].apply(this, arguments)];
+
+                var node = this[key].apply(this, arguments);
+
+                return node ? [node] : [];
+
             } :
             function () {
                 return $a.from(this[key].apply(this, arguments)).compact();
