@@ -285,7 +285,7 @@ define([
         area:   [1, "<map></map>"],
         col:    [2, "<table><colgroup></colgroup><tbody></tbody></table>"],
         legend: [1, "<fieldset>"],
-        option: [1, "<select multiple="multiple"></select>"],
+        option: [1, "<select multiple=\"multiple\"></select>"],
         param:  [1, "<object></object>"],
         th:     [3, "<table><tbody><tr></tr></tbody></table>"],
         thead:  [1, "<table></table>"],
@@ -313,7 +313,7 @@ define([
 
         var ret = true;
 
-        if (util.Function.isFunction(HTMLElement.prototype[method]) {
+        if (util.Function.isFunction(HTMLElement.prototype[method])) {
 
             is = function (element, selector) {
                 return element[method](selector);

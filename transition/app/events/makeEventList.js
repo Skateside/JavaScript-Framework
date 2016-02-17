@@ -21,23 +21,83 @@ define([
          * 	- func (Function): Function to execute on each entry in the list.
          *
          * 	Loops over each of the entries in the list and executes the given
-         * 	`func` on them. If `func` returns `false`, the loop is halted.
+         * 	`func` on them.
          *
          *		var list = makeEventList();
-         *		list.add(function () {});
-         *		list.add(function () {});
-         *		list.add(function () {});
-         * 		list.each(function (handler, i) {
-         * 			console.log(handler);
-         * 			return i === 1;
+         *		list.add(function () { return 1; });
+         *		list.add(function () { return 2; });
+         *		list.add(function () { return 3; });
+         * 		list.each(function (handler) {
+         *			console.log("%d = %d", i, entry.handler());
          * 		});
-         * 		// Logs 2 functions then stops.
+         *		// Logs "0 = 1" then "1 = 2" then "2 = 3"
          *
+         * 	If you need to stop the list, use [[eventList.doUntil]] to stop when
+         * 	`func` returns `true` and [[eventList.doWhile]] to stop when `func`
+         * 	stops returning true.
          **/
         function each(func) {
 
+            events.forEach(function (event, i) {
+                func(event, i);
+            });
+
+        }
+
+        /** related to: eventList.doUntil
+         * 	eventList.doWhile(func)
+         * 	- func (Function): Function to execute on each entry of the list.
+         *
+         * 	Loops over each entry of the list and passed them to `func`. As long
+         * 	as `func` returns `true` (and there are entries) then the loop will
+         * 	continue.
+         *
+         *		var list = makeEventList();
+         *		list.add(function () { return 1; });
+         *		list.add(function () { return 2; });
+         *		list.add(function () { return 3; });
+         *		list.doWhile(function (entry, i) {
+         *			console.log("%d = %d", i, entry.handler());
+         *			return entry.handler() < 2;
+         *		});
+         *		// Logs "0 = 1" then "1 = 2"
+         *
+         * 	To continue the loop until the `hander` returns `true`, use
+         * 	[[eventList.doUntil]].
+         **/
+        function doWhile(func) {
+
+            events.every(function (event, i) {
+                return func(event, i) === true;
+            });
+            
+        }
+
+        /** related to: eventList.doWhile
+         * 	eventList.doUntil(func)
+         * 	- func (Function): Function to execute on each entry of the list.
+         *
+         * 	Loops over each entry of the list and passed them to `func`. Until
+         * 	`func` returns `true` (and while there are entries) the loop will
+         * 	continue.
+         *
+         *		var list = makeEventList();
+         *		list.add(function () { return 1; });
+         *		list.add(function () { return 2; });
+         *		list.add(function () { return 3; });
+         *		list.doWhile(function (entry) {
+         *			console.log("%d = %d", i, entry.handler());
+         *			return entry.handler() === 2;
+         *		});
+         *		// Logs "0 = 1" then "1 = 2"
+         *
+         * 	To continue the loop while the `hander` returns `true`, use
+         * 	[[eventList.doWhile]].
+         **/
+        function doUntil(func) {
+
             events.some(function (event, i) {
-                return func(event, i) !== false;
+                return func(event, i) !== true;
             });
 
         }

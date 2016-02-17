@@ -120,7 +120,7 @@ define([
         /**
          * 	eventInterface.emit(event)
          * 	eventInterface.emit(name[, data])
-         * 	- event (eventArgument): eventArgument instance to emit.
+         * 	- event (appEventArgument): eventArgument instance to emit.
          * 	- name (String): Name of the event.
          * 	- data (*): Optional data for the event.
          *
@@ -129,24 +129,118 @@ define([
          *
          *		var inter = makeEventInterface();
          * 		// Trigger with string.
-         * 		inter.emit('my-event-1');
-         * 		inter.emit('my-event-2', {foo: true});
+         * 		inter.emit("my-event-1");
+         * 		inter.emit("my-event-2", {foo: true});
          * 		// Trigger with event.
-         * 		var evt = inter.create('my-event-3');
+         * 		var evt = inter.create("my-event-3");
          * 		inter.emit(evt);
          *
+         * 	Data cannot be passed to `emit` if an [[appEventArgument]] is used.
+         * 	If you need to pass data, the data must be added when the event is
+         * 	created. See [[eventInterface.create]] for more information.
+         *
+         * 	Emitting events will cause the event name to rise up through the
+         * 	chain, allowing for delegation. The hierarchy is determined by the
+         * 	hyphens in the name. In the case of "my-event-1", emitting it will
+         * 	subsequently emit "my-event" and then "my". As you can see,
+         * 	"my-event-2" and "my-event-3" would also trigger these so a handler
+         * 	bound to "my-event" would hear all these events.
+         *
+         * 		var inter = makeEventInterface();
+         * 		inter.on("my-event-1", function (e) {
+         * 			console.log("my-event-1 emitted from %s", e.name);
+         * 		});
+         * 		inter.on("my-event", function (e) {
+         * 			console.log("my-event emitted from %s", e.name);
+         * 		});
+         * 		inter.on("my", function (e) {
+         * 			console.log("my emitted from %s", e.name);
+         * 		});
+         * 		inter.emit("my-event-1");
+         * 		// log: "my-event-1 emitted from my-event-1"
+         * 		// log: "my-event emitted from my-event-1"
+         * 		// log: "my emitted from my-event-1"
+         *
+         * 	This process is known as "promoting" and can be easily stopped by
+         * 	calling the `stopPromoting` method on the event argument.
+         *
+         * 		var inter = makeEventInterface();
+         * 		inter.on("my-event-1", function (e) {
+         * 			console.log("my-event-1 emitted from %s", e.name);
+         * 		});
+         * 		inter.on("my-event", function (e) {
+         * 			console.log("my-event emitted from %s", e.name);
+         * 			e.stopPromoting();
+         * 		});
+         * 		inter.on("my", function (e) {
+         * 			console.log("my emitted from %s", e.name);
+         * 		});
+         * 		inter.emit("my-event-1");
+         * 		// log: "my-event-1 emitted from my-event-1"
+         * 		// log: "my-event emitted from my-event-1"
+         *
+         * 	Multiple handlers can be bound to a single event and are executed in
+         * 	a first-in-first-out order.
+         *
+         * 		var inter = makeEventInterface();
+         * 		inter.on("my-event-1", function (e) {
+         * 			console.log(1);
+         * 		});
+         * 		inter.on("my-event-1", function (e) {
+         * 			console.log(2);
+         * 		});
+         * 		inter.on("my-event-1", function (e) {
+         * 			console.log(3);
+         * 		});
+         * 		inter.emit("my-event-1");
+         * 		// log: 1
+         * 		// log: 2
+         * 		// log: 3
+         *
+         * 	This can be stopped by calling the `stopExecuting` method on the
+         * 	event argument.
+         *
+         * 		var inter = makeEventInterface();
+         * 		inter.on("my-event-1", function (e) {
+         * 			console.log(1);
+         * 		});
+         * 		inter.on("my-event-1", function (e) {
+         * 			console.log(2);
+         * 			e.stopExecuting();
+         * 		});
+         * 		inter.on("my-event-1", function (e) {
+         * 			console.log(3);
+         * 		});
+         * 		inter.trigger("my-event-1");
+         * 		// log: 1
+         * 		// log: 2
+         *
+         * 	Calling `stopExecuting` will automatically also call
+         * 	`stopPromoting`.
          **/
         function emit(name, data) {
 
-            var arg = getEventArgument(name, data);
+            var arg = makeEventArgument(name, data);
+            var parts = name.split("-");
+            var il = parts.length;
 
-            get(name).each(function (event) {
+            while (il) {
 
-                event.handler.call(event.context, arg);
+                get(parts.slice(0, il).join("-")).doUntil(function (event) {
 
-                return !arg.isStopped();
+                    event.handler.call(event.context, arg);
 
-            });
+                    return arg.isExecutingStopped();
+
+                });
+
+                if (arg.isPromotingStopped()) {
+                    break;
+                }
+
+                il -= 1;
+
+            }
 
         }
 
