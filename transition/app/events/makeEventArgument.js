@@ -9,48 +9,64 @@ define([
     "use strict";
 
     /** related to: appEventArgument
-     * 	makeEventArgument(name[, data]) -> appEventArgument
+     *  makeEventArgument(name[, data]) -> appEventArgument
      * 	- name (String): Name of the event.
      * 	- data (*): Optional data for the event.
      *
-     * 	Creates an event argument that is passed to the handlers bound to the
-     * 	event as that event is triggered.
+     *  Creates an event argument that is passed to the handlers bound to the
+     *  event as that event is triggered.
      *
-     * 	The event argument drives the application events and is the most obvious
-     * 	way to transfer information to all handlers bound to it.
+     *  The event argument drives the application events and is the most obvious
+     *  way to transfer information to all handlers bound to it.
      *
-     * 	Triggering an event will also trigger events upwards, based on the name.
-     * 	This allows for delegation. Events are ordered into a hierarchy using
-     * 	the names - events are broken into blocks based on the hyphen. Thus,
-     * 	triggering "one-two-three" will subsequently trigger "one-two" and then
+     *  Triggering an event will also trigger events upwards, based on the name.
+     *  This allows for delegation. Events are ordered into a hierarchy using
+     *  the names - events are broken into blocks based on the hyphen. Thus,
+     *  triggering "one-two-three" will subsequently trigger "one-two" and then
      * 	"one". To stop this promoting of events, use
      * 	[[appEventArgument.stopPromoting]]. If you want to stop executing other
-     * 	handlers bound to the event as well as stop the promoting, use
+     *  handlers bound to the event as well as stop the promoting, use
      * 	[[appEventArgument.stopExecuting]].
      **/
     function makeEventArgument(name, data) {
 
         var arg = {};
+        var internalIsActionStopped = false;
         var internalIsPromotingStopped = false;
         var internalIsExecutingStopped = false;
 
         /**
-         * 	appEventArgument.stopPromoting()
+         *  appEventArgument.stopAction()
          *
-         * 	Stops the promoting of events up through their name. Normally,
-         * 	triggering "one-two-three" will subsequently trigger "one-two" and
-         * 	then "one" - `appEventArgument.stopPromoting()` will stop that
-         * 	process. To stop executing handlers bound to the event as well as
-         * 	stop this promoting process, use [[appEventArgument.stopExecuting]].
+         *  Stops some kind of action. The action will change from event to
+         *  event. Crucially, this is not the same as
+         *  [[appEventArgument.stopPromoting]] which stops the event subsequent
+         *  triggering, or [[appEventArgument.stopExecuting]] which stops other
+         *  handlers bound to the event from executing; stopping the action sets
+         *  a flag that could stop another action from occurring. Think of this
+         *  as being similar to the DOM event method `preventDefault`.
+         **/
+        function stopAction() {
+            internalIsActionStopped = true;
+        }
+
+        /**
+         *  appEventArgument.stopPromoting()
+         *
+         *  Stops the promoting of events up through their name. Normally,
+         *  triggering "one-two-three" will subsequently trigger "one-two" and
+         *  then "one" - `appEventArgument.stopPromoting()` will stop that
+         *  process. To stop executing handlers bound to the event as well as
+         *  stop this promoting process, use [[appEventArgument.stopExecuting]].
          **/
         function stopPromoting() {
             internalIsPromotingStopped = false;
         }
 
         /**
-         * 	appEventArgument.isPromotingStopped() -> Boolean
+         *  appEventArgument.isPromotingStopped() -> Boolean
          *
-         * 	Returns `true` if the promotion of the event has been stopped and
+         *  Returns `true` if the promotion of the event has been stopped and
          * 	`false` if it has not.
          **/
         function isPromotingStopped() {
@@ -58,11 +74,11 @@ define([
         }
 
         /**
-         * 	appEventArgument.stopExecuting()
+         *  appEventArgument.stopExecuting()
          *
-         * 	Stops the even executing any other handlers that are bound to it.
-         * 	This also stops promoting. To stop promoting without stopping
-         * 	execution, use [[appEventArgument.stopPromoting]].
+         *  Stops the even executing any other handlers that are bound to it.
+         *  This also stops promoting. To stop promoting without stopping
+         *  execution, use [[appEventArgument.stopPromoting]].
          **/
         function stopExecuting() {
 
@@ -72,9 +88,19 @@ define([
         }
 
         /**
-         * 	appEventArgument.isExecutingStopped() -> Boolean
+         *  appEventArgument.isActionStopped() -> Boolean
          *
-         * 	Returns `true` if the execution of the event has been stopped and
+         *  Returns `true` if the action of the event has been stopped and
+         *  `false` if it has not.
+         **/
+        function isActionStopped() {
+            return internalIsActionStopped;
+        }
+
+        /**
+         *  appEventArgument.isExecutingStopped() -> Boolean
+         *
+         *  Returns `true` if the execution of the event has been stopped and
          * 	`false` if it has not.
          **/
         function isExecutingStopped() {
@@ -88,19 +114,21 @@ define([
         util.Object.assign(arg, {
 
             /**
-             * 	appEventArgument.timestap -> Number
+             *  appEventArgument.timestap -> Number
              *
-             * 	Timestamp representing the time the event was executed.
+             *  Timestamp representing the time the event was executed.
              **/
             timestamp: Date.now(),
 
             /**
-             * 	appEventArgument.name -> String
+             *  appEventArgument.name -> String
              *
-             * 	Name of the event that was executed.
+             *  Name of the event that was executed.
              */
             name,
 
+            stopAction,
+            isActionStopped,
             stopPromoting,
             isPromotingStopped,
             stopExecuting,
@@ -109,10 +137,10 @@ define([
         });
 
         /**
-         * 	appEventArgument.data -> *
+         *  appEventArgument.data -> *
          *
-         * 	Data passed to the event in the `makeEventArgument` function. If no
-         * 	data is passed in, this property will not exist.
+         *  Data passed to the event in the `makeEventArgument` function. If no
+         *  data is passed in, this property will not exist.
          **/
         if (data) {
             arg.data = data;

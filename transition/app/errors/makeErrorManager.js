@@ -7,6 +7,7 @@ define([
     "use strict";
 
     var errors = {};
+    var curry = util.Function.curry;
 
     const DEFAULT = "default";
     const FATAL = "fatal";
@@ -22,6 +23,7 @@ define([
 
             this.name = ucfirst + "Error";
             this.message = message;
+            this.level = level;
 
         };
 
@@ -34,7 +36,6 @@ define([
     function makeErrorManager() {
 
         var manager = {};
-
 
         function create(message, level) {
 
@@ -62,7 +63,12 @@ define([
             DEPRECATED,
 
             create,
-            trigger
+            trigger,
+
+            triggerFatal: curry(trigger, undefined, FATAL),
+            triggerWarning: curry(trigger, undefined, WARNING),
+            triggerNotice: curry(trigger, undefined, NOTICE),
+            triggerDeprecated: curry(trigger, undefined, DEPRECATED)
 
         });
 

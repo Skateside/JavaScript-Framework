@@ -236,18 +236,18 @@ define([
     }
 
     /**
-    *  dom.toHtml(string) -> DocumentFragment
-    *  - string (String): String to convert.
-    *
-    *  Converts the given string into a `DocumentFragment` containing the
-    *  string as DOM nodes.
-    *
-    *      dom.toHtml('<div><i>hi</i></div>');
-    *      // -> DocumentFragment[<div><i>hi</i></div>]
-    *      dom.toHtml('<div></div><i>hi</i>');
-    *      // -> DocumentFragment[<div></div><i>hi</i>]
-    *
-    **/
+     *  dom.toHtml(string) -> DocumentFragment
+     *  - string (String): String to convert.
+     *
+     *  Converts the given string into a `DocumentFragment` containing the
+     *  string as DOM nodes.
+     *
+     *      dom.toHtml('<div><i>hi</i></div>');
+     *      // -> DocumentFragment[<div><i>hi</i></div>]
+     *      dom.toHtml('<div></div><i>hi</i>');
+     *      // -> DocumentFragment[<div></div><i>hi</i>]
+     *
+     **/
     function toHtml(html) {
 
         var frag = document.createDocumentFragment();

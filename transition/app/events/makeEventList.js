@@ -7,9 +7,9 @@ define([
     "use strict";
 
     /** related to: eventList
-     * 	makeEventList() -> eventList
+     *  makeEventList() -> eventList
      *
-     * 	Creates an event list: a list for managing an event.
+     *  Creates an event list: a list for managing an event.
      **/
     function makeEventList() {
 
@@ -17,24 +17,24 @@ define([
         var events = [];
 
         /**
-         * 	eventList.each(func)
-         * 	- func (Function): Function to execute on each entry in the list.
+         *  eventList.each(func)
+         *  - func (Function): Function to execute on each entry in the list.
          *
-         * 	Loops over each of the entries in the list and executes the given
-         * 	`func` on them.
+         *  Loops over each of the entries in the list and executes the given
+         *  `func` on them.
          *
-         *		var list = makeEventList();
-         *		list.add(function () { return 1; });
-         *		list.add(function () { return 2; });
-         *		list.add(function () { return 3; });
-         * 		list.each(function (handler) {
-         *			console.log("%d = %d", i, entry.handler());
-         * 		});
-         *		// Logs "0 = 1" then "1 = 2" then "2 = 3"
+         *      var list = makeEventList();
+         *      list.add(function () { return "zero"; });
+         *      list.add(function () { return "one"; });
+         *      list.add(function () { return "two"; });
+         *      list.each(function (handler) {
+         *          console.log("%d = %s", i, entry.handler());
+         *      });
+         *  // Logs "0 = zero" then "1 = one" then "2 = two"
          *
-         * 	If you need to stop the list, use [[eventList.doUntil]] to stop when
-         * 	`func` returns `true` and [[eventList.doWhile]] to stop when `func`
-         * 	stops returning true.
+         *  If you need to stop the list, use [[eventList.doUntil]] to stop when
+         *  `func` returns `true` and [[eventList.doWhile]] to stop when `func`
+         *  stops returning `true`.
          **/
         function each(func) {
 
@@ -45,59 +45,59 @@ define([
         }
 
         /** related to: eventList.doUntil
-         * 	eventList.doWhile(func)
-         * 	- func (Function): Function to execute on each entry of the list.
+         *  eventList.doWhile(func)
+         *  - func (Function): Function to execute on each entry of the list.
          *
-         * 	Loops over each entry of the list and passed them to `func`. As long
-         * 	as `func` returns `true` (and there are entries) then the loop will
-         * 	continue.
+         *  Loops over each entry of the list and passed them to `func`. As long
+         *  as `func` returns `true` (and there are entries) then the loop will
+         *  continue.
          *
-         *		var list = makeEventList();
-         *		list.add(function () { return 1; });
-         *		list.add(function () { return 2; });
-         *		list.add(function () { return 3; });
-         *		list.doWhile(function (entry, i) {
-         *			console.log("%d = %d", i, entry.handler());
-         *			return entry.handler() < 2;
-         *		});
-         *		// Logs "0 = 1" then "1 = 2"
+         *      var list = makeEventList();
+         *      list.add(function () { return "zero"; });
+         *      list.add(function () { return "one"; });
+         *      list.add(function () { return "two"; });
+         *      list.doWhile(function (entry, i) {
+         *          console.log("%d = %s", i, entry.handler());
+         *          return i < 1;
+         *      });
+         *      // Logs "0 = zero" then "1 = one"
          *
-         * 	To continue the loop until the `hander` returns `true`, use
-         * 	[[eventList.doUntil]].
+         *  To continue the loop until the `hander` returns `true`, use
+         *  [[eventList.doUntil]].
          **/
         function doWhile(func) {
 
             events.every(function (event, i) {
-                return func(event, i) === true;
+                return func(event, i);
             });
-            
+
         }
 
         /** related to: eventList.doWhile
-         * 	eventList.doUntil(func)
-         * 	- func (Function): Function to execute on each entry of the list.
+         *  eventList.doUntil(func)
+         *  - func (Function): Function to execute on each entry of the list.
          *
-         * 	Loops over each entry of the list and passed them to `func`. Until
-         * 	`func` returns `true` (and while there are entries) the loop will
-         * 	continue.
+         *  Loops over each entry of the list and passed them to `func`. Until
+         *  `func` returns `true` (and while there are entries) the loop will
+         *  continue.
          *
-         *		var list = makeEventList();
-         *		list.add(function () { return 1; });
-         *		list.add(function () { return 2; });
-         *		list.add(function () { return 3; });
-         *		list.doWhile(function (entry) {
-         *			console.log("%d = %d", i, entry.handler());
-         *			return entry.handler() === 2;
-         *		});
-         *		// Logs "0 = 1" then "1 = 2"
+         *      var list = makeEventList();
+         *      list.add(function () { return "zero"; });
+         *      list.add(function () { return "one"; });
+         *      list.add(function () { return "two"; });
+         *      list.doWhile(function (entry) {
+         *          console.log("%d = %s", i, entry.handler());
+         *          return i === 1;
+         *      });
+         *      // Logs "0 = zero" then "1 = one"
          *
-         * 	To continue the loop while the `hander` returns `true`, use
-         * 	[[eventList.doWhile]].
+         *  To continue the loop while the `hander` returns `true`, use
+         *  [[eventList.doWhile]].
          **/
         function doUntil(func) {
 
             events.some(function (event, i) {
-                return func(event, i) !== true;
+                return func(event, i);
             });
 
         }
@@ -123,28 +123,28 @@ define([
         }
 
         /**
-         * 	eventList.add(handler[, context]) -> eventList
-         * 	- handler (Function): Handler to add.
-         * 	- context (*): Optional context for `handler` to execute in.
+         *  eventList.add(handler[, context]) -> eventList
+         *  - handler (Function): Handler to add.
+         *  - context (*): Optional context for `handler` to execute in.
          *
-         * 	Adds the specified handler to the event list. The instance is
-         * 	returned to allow for chaining.
+         *  Adds the specified handler to the event list. The instance is
+         *  returned to allow for chaining.
          *
-         *		var list = makeEventList();
-         *		list
-         *			.add(function () {})
-         *			.add(function () {});
+         *      var list = makeEventList();
+         *      list
+         *          .add(function () {})
+         *          .add(function () {});
          *
-         *	Functions are checked when added to ensure that they're unique.
+         *    Functions are checked when added to ensure that they're unique.
          *
-         * 		var list = makeEventList();
-         * 		var func = function () {
-         * 		};
-         * 		list.add(func).add(func);
-         * 		list.each(function (handler, i) {
-         * 			console.log(i);
-         * 		});
-         * 		// Logs 0 because there is only 1 event added.
+         *      var list = makeEventList();
+         *      var func = function () {
+         *      };
+         *      list.add(func).add(func);
+         *      list.each(function (handler, i) {
+         *          console.log(i);
+         *      });
+         *      // Logs 0 because there is only 1 event added.
          *
          **/
         function add(hander, context) {
@@ -163,18 +163,18 @@ define([
         }
 
         /**
-         * 	eventList.remove(handler) -> Boolean
-         * 	- handler (Function): Handler to remove.
+         *  eventList.remove(handler) -> Boolean
+         *  - handler (Function): Handler to remove.
          *
-         * 	Removes the handler from the event list. If the handler cannot be
-         * 	found, no action is taken. A boolean is returned to say whether or
-         * 	not a handler was removed.
+         *  Removes the handler from the event list. If the handler cannot be
+         *  found, no action is taken. A boolean is returned to say whether or
+         *  not a handler was removed.
          *
-         *		var list = makeEventList();
-         *		var func = function () {};
-         *		list.add(func);
-         *		list.remove(func); // -> true
-         *		list.remove(func); // -> false
+         *  var list = makeEventList();
+         *  var func = function () {};
+         *  list.add(func);
+         *  list.remove(func); // -> true
+         *  list.remove(func); // -> false
          *
          **/
         function remove(handler) {
@@ -193,7 +193,9 @@ define([
         util.Object.assign(list, {
             add,
             remove,
-            each
+            each,
+            doWhile,
+            doUntil
         });
 
         return Object.freeze(list);
