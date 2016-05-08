@@ -14,22 +14,23 @@ define([
     var regexp = {};
 
     /**
-     *  util.RegExp.isRegExp(reg) -> Boolean
-     *  - reg (?): Object to test.
+     *  util.RegExp.interpret(regexp) -> RegExp
+     *  - regexp (?): Object to interpret as a regular expression.
      *
-     *  Tests to see if the given `reg` is a regular expression.
-     *
-     *      util.RegExp.isRegExp(/\s/); // -> true
-     *      util.RegExp.isRegExp('\s'); // -> false
-     *
+     *  Interprets the given `regexp` as a `RegExp`.
      **/
-    function isRegExp(reg) {
-        return reg instanceof RegExp;
+    function interpret(regexp) {
+
+        return core.isRegExp(regexp)
+            ? regexp
+            : /(?:)/;
+
     }
 
     core.assign(regexp, {
         escape: core.escapeRegExp,
-        isRegExp
+        interpret,
+        isRegExp: core.isRegExp
     });
 
     return Object.freeze(regexp);

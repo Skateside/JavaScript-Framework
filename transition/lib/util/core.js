@@ -131,6 +131,55 @@ define(function () {
     };
 
     /**
+     *  util.Array.forEach(array, handler[, context]) -> Boolean
+     *  - array (Array): Array to test.
+     *  - handler (Function): Function for testing.
+     *  - context (Object): Optional context for `handler`.
+     *
+     *  Identical to the native `[].forEach()` with the exception that it will
+     *  work on any iterable object, not just arrays.
+     *
+     *      var divs = document.getElementsByTagName('div');
+     *      function logNodeName(div) {
+     *          console.log(div.nodeNode.toLowerCase());
+     *      }
+     *      divs.forEach(logNodeName);
+     *      // -> TypeError: divs.forEach is not a function
+     *      util.Array.forEach(divs, logNodeName);
+     *      // -> logs: "div"
+     *      // -> logs: "div"
+     *      // -> logs: "div"
+     *      // -> ...
+     *
+     **/
+    var arrayForEach = Array.forEach || function (array, handler, context) {
+        return Array.prototype.forEach.call(array, handler, context);
+    };
+
+    /**
+     *  util.Array.map(array, handler[, context]) -> Boolean
+     *  - array (Array): Array to test.
+     *  - handler (Function): Function for testing.
+     *  - context (Object): Optional context for `handler`.
+     *
+     *  Identical to the native `[].map()` with the exception that it will work
+     *  on any iterable object, not just arrays.
+     *
+     *      var divs = document.getElementsByTagName('div');
+     *      function getNodeName(div) {
+     *          return div.nodeNode.toLowerCase();
+     *      }
+     *      divs.map(getNodeName);
+     *      // -> TypeError: divs.map is not a function
+     *      util.Array.map(divs, getNodeName);
+     *      // -> ['div', 'div', 'div', ...]
+     *
+     **/
+    var arrayMap = Array.map || function (array, handler, context) {
+        return Array.prototype.map.call(array, handler, context);
+    };
+
+    /**
      *  util.Number.isNumeric(number) -> Boolean
      *  - number (?): Number to test.
      *
@@ -179,6 +228,20 @@ define(function () {
         );
 
     };
+
+    /**
+     *  util.RegExp.isRegExp(reg) -> Boolean
+     *  - reg (?): Object to test.
+     *
+     *  Tests to see if the given `reg` is a regular expression.
+     *
+     *      util.RegExp.isRegExp(/\s/); // -> true
+     *      util.RegExp.isRegExp('\s'); // -> false
+     *
+     **/
+    function isRegExp(reg) {
+        return reg instanceof RegExp;
+    }
 
     /**
      *  util.Object.getType(object) -> String
@@ -322,14 +385,103 @@ define(function () {
         return Math.floor(randFloat(min, max));
     }
 
+
+    /**
+     *  util.Array.pluck(array, property) -> Array
+     *  util.Array.pluck(array, property, value) -> Object
+     *  - array (Array): Array to iterate over.
+     *  - property (String): Property to retrieve.
+     *  - value (String): Property name.
+     *
+     *  This method gets a property from the entries in an util.array.
+     *
+     *      util.Array.pluck(["one", "two", "three", "four"], "length");
+     *      // -> [3, 3, 5, 4]
+     *      util.Array.pluck(["one", "two", "three", "four"], "not-real");
+     *      // -> [undefined, undefined, undefined, undefined]
+     *
+     *  If a `value` is provided, an `Object` is returned rather than an
+     *  `Array`, the `Object` is a key/value set based on the entries in the
+     *  array, with the `Object`'s keys being the `property` and the values
+     *  being `value.
+     *
+     *      var arr = [
+     *          {name: "foo", value: 1},
+     *          {name: "bar", value: 2},
+     *          {name: "baz", value: 3}
+     *      ];
+     *      util.Array.pluck(arr, "name", "value");
+     *      // -> {foo: 1, bar: 2, baz: 3}
+     *
+     *  When using the `value` argument, beware that repeated `property`s will
+     *  replace existing ones.
+     *
+     *      var arr = [
+     *          {name: "foo", value: 1},
+     *          {name: "bar", value: 2},
+     *          {name: "foo", value: 3}
+     *      ];
+     *      util.Array.pluck(arr, "name", "value");
+     *      // -> {foo: 3, bar: 2}
+     *
+     *  To execute a method rather than accessing a property, use the
+     *  [[util.Array.invoke]] method.
+     **/
+    function arrayPluck(array, property, value) {
+
+        var plucked = {};
+
+        if (typeof value === "string") {
+
+            arrayForEach(array, function (entry) {
+                plucked[entry[property]] = entry[value];
+            });
+
+        } else {
+
+            plucked = arrayMap(array, function (entry) {
+                return entry[property];
+            });
+
+        }
+
+        return plucked;
+
+    }
+
+    /**
+     *  util.Function.isNative(func) -> Boolean
+     *  - func (Function): Function to tests.
+     *
+     *  Tests to see if the given `func` is a native function, not one that has
+     *  been created by the user or a library.
+     *
+     *      util.Function.isNative(window.setTimeout);      // -> true
+     *      util.Function.isNative(util.Function.isNative); // -> false
+     *
+     **/
+    function isFunctionNative(func) {
+
+        return (
+            typeof func === "function"
+            && func.toString().indexOf("native") > -1
+        );
+
+    }
+
     assign(core, {
+        arrayForEach,
         arrayFrom,
+        arrayMap,
+        arrayPluck,
         assign,
         escapeRegExp,
         getType,
         identity,
         isArrayLike,
+        isFunctionNative,
         isNumeric,
+        isRegExp,
         topPosInt
     });
 

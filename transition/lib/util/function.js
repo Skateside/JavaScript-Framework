@@ -14,6 +14,23 @@ define([
     var functions = {};
 
     /**
+     *  util.Function.noop()
+     *
+     *  A "NO-OPeration" function. Takes no arguments, returns nothing. This is
+     *  mainly useful for situations where a default function is required with
+     *  the expectation being that the function will be overridden by a setting
+     *  or argument later on.
+     *
+     *      Function.noop();          // -> undefined
+     *      Function.noop(true);      // -> undefined (arguments are ignored)
+     *      Function.noop.call(null); // -> undefined (context is ignored)
+     *
+     **/
+    var noop = function () {
+        return;
+    };
+
+    /**
      *  util.Function.curry(func, ...args) -> Function
      *  - func (Function): Function to curry.
      *  - args (?): Pre-defined arguments for `func`.
@@ -60,35 +77,28 @@ define([
     }
 
     /**
-     *  util.Function.noop()
+     *  util.Function.interpret(func) -> Function
+     *  - func (?): Object to interpret as a function.
      *
-     *  A "NO-OPeration" function. Takes no arguments, returns nothing. This is
-     *  mainly useful for situations where a default function is required with
-     *  the expectation being that the function will be overridden by a setting
-     *  or argument later on.
-     *
-     *      Function.noop();          // -> undefined
-     *      Function.noop(true);      // -> undefined (arguments are ignored)
-     *      Function.noop.call(null); // -> undefined (context is ignored)
-     *
+     *  Interprets the given `func` as a function. If `func` cannot be
+     *  interpretted as a function, [[util.Function.noop]] is returned. Passing
+     *  a variable through this function guarentees that the function will work
+     *  with all [[util.Function]] methods.
      **/
-    function noop() {
-        return;
-    }
+    function interpret(func) {
 
-    function wrap(func, wrapper) {
-
-        return function (...args) {
-            return wrapper.apply(this, [func.bind(this), ...args]));
-        };
+        return typeof func === "function"
+            ? func
+            : noop;
 
     }
 
     core.assign(functions, {
         curry,
         identity: core.identity,
-        noop,
-        wrap
+        interpret,
+        isNative: core.isFunctionNative,
+        noop
     });
 
     return Object.freeze(functions);

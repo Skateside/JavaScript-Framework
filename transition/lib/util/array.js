@@ -12,6 +12,24 @@ define([
     var array = {};
 
     /**
+     *  util.Array.interpret(array) -> Array
+     *  - array (?): Object to interpret as an array.
+     *
+     *  Interprets the given `array` as an `Array`. If the `array` cannot be
+     *  interpretted, an empty array is returned. Passing a variable through
+     *  this function will guanrentee that it will work with all the
+     *  [[util.Array]] methods.
+     *
+     *      util.Array.identify("abc"); // -> ["a", "b", "c"]
+     *      util.Array.identify(1);     // -> ["1"]
+     *      util.Array.identify();      // -> []
+     *
+     **/
+    var interpret = function (array) {
+        return core.arrayFrom(array);
+    };
+
+    /**
      *  util.Array.every(array, handler[, context]) -> Boolean
      *  - array (Array): Array to test.
      *  - handler (Function): Function for testing.
@@ -55,54 +73,6 @@ define([
         return Array.prototype.filter.call(array, handler, context);
     };
 
-    /**
-     *  util.Array.forEach(array, handler[, context]) -> Boolean
-     *  - array (Array): Array to test.
-     *  - handler (Function): Function for testing.
-     *  - context (Object): Optional context for `handler`.
-     *
-     *  Identical to the native `[].forEach()` with the exception that it
-     *  will work on any iterable object, not just arrays.
-     *
-     *      var divs = document.getElementsByTagName('div');
-     *      function logNodeName(div) {
-     *          console.log(div.nodeNode.toLowerCase());
-     *      }
-     *      divs.forEach(logNodeName);
-     *      // -> TypeError: divs.forEach is not a function
-     *      util.Array.forEach(divs, logNodeName);
-     *      // -> logs: "div"
-     *      // -> logs: "div"
-     *      // -> logs: "div"
-     *      // -> ...
-     *
-     **/
-    var forEach = Array.forEach || function (array, handler, context) {
-        return Array.prototype.forEach.call(array, handler, context);
-    };
-
-    /**
-     *  util.Array.map(array, handler[, context]) -> Boolean
-     *  - array (Array): Array to test.
-     *  - handler (Function): Function for testing.
-     *  - context (Object): Optional context for `handler`.
-     *
-     *  Identical to the native `[].map()` with the exception that it will
-     *  work on any iterable object, not just arrays.
-     *
-     *      var divs = document.getElementsByTagName('div');
-     *      function getNodeName(div) {
-     *          return div.nodeNode.toLowerCase();
-     *      }
-     *      divs.map(getNodeName);
-     *      // -> TypeError: divs.map is not a function
-     *      util.Array.map(divs, getNodeName);
-     *      // -> ['div', 'div', 'div', ...]
-     *
-     **/
-    var map = Array.map || function (array, handler, context) {
-        return Array.prototype.map.call(array, handler, context);
-    };
 
     /**
      *  util.Array.some(array, handler[, context]) -> Boolean
@@ -142,17 +112,15 @@ define([
      **/
     var unique = function (array) {
 
-        return core
-            .arrayFrom(array)
-            .reduce(function (prev, curr) {
+        return interpret(array).reduce(function (prev, curr) {
 
-                if (prev.indexOf(curr) < 0) {
-                    prev.push(curr);
-                }
+            if (prev.indexOf(curr) < 0) {
+                prev.push(curr);
+            }
 
-                return prev;
+            return prev;
 
-            }, []);
+        }, []);
 
     };
 
@@ -181,7 +149,7 @@ define([
     function chunk(array, size, map, context) {
 
         var chunked = [];
-        var arr = arrayFrom(array, map, context);
+        var arr = core.arrayFrom(array, map, context);
         var i = 0;
         var il = arr.length;
         var amount = toPosInt(size) || 1;
@@ -216,15 +184,13 @@ define([
 
         return unique(arrays.reduce(function (array1, array2) {
 
-            var arr = core.arrayFrom(array2);
+            var arr = interpret(array2);
 
-            return core
-                .arrayFrom(array1)
-                .filter(function (entry) {
-                    return arr.indexOf(entry) > -1;
-                });
+            return array1.filter(function (entry) {
+                return arr.indexOf(entry) > -1;
+            });
 
-        }, core.arrayFrom(array)));
+        }, interpret(array)));
 
     }
 
@@ -248,15 +214,13 @@ define([
 
         return unique(arrays.reduce(function (array1, array2) {
 
-            var arr = core.arrayFrom(array2);
+            var arr = interpret(array2);
 
-            return core
-                .arrayFrom(array1)
-                .filter(function (entry) {
-                    return arr.indexOf(entry) < 0;
-                });
+            return array1.filter(function (entry) {
+                return arr.indexOf(entry) < 0;
+            });
 
-        }, core.arrayFrom(array)));
+        }, interpret(array)));
 
     }
 
@@ -311,7 +275,7 @@ define([
      **/
     function invoke(array, method, ...args) {
 
-        return map(array, function (entry) {
+        return core.arrayMap(array, function (entry) {
             return entry[method].apply(entry, args);
         });
 
@@ -372,74 +336,11 @@ define([
 
         return function (array, method, ...args) {
 
-            return map(array, function (entry) {
+            return core.arrayMap(array, function (entry) {
                 return context[method].apply(context, [entry].concat(args));
             });
 
         };
-
-    }
-
-    /**
-     *  util.Array.pluck(array, property) -> Array
-     *  util.Array.pluck(array, property, value) -> Object
-     *  - array (Array): Array to iterate over.
-     *  - property (String): Property to retrieve.
-     *  - value (String): Property name.
-     *
-     *  This method gets a property from the entries in an util.array.
-     *
-     *      util.Array.pluck(["one", "two", "three", "four"], "length");
-     *      // -> [3, 3, 5, 4]
-     *      util.Array.pluck(["one", "two", "three", "four"], "not-real");
-     *      // -> [undefined, undefined, undefined, undefined]
-     *
-     *  If a `value` is provided, an `Object` is returned rather than an
-     *  `Array`, the `Object` is a key/value set based on the entries in the
-     *  array, with the `Object`'s keys being the `property` and the values
-     *  being `value.
-     *
-     *      var arr = [
-     *          {name: "foo", value: 1},
-     *          {name: "bar", value: 2},
-     *          {name: "baz", value: 3}
-     *      ];
-     *      util.Array.pluck(arr, "name", "value");
-     *      // -> {foo: 1, bar: 2, baz: 3}
-     *
-     *  When using the `value` argument, beware that repeated `property`s will
-     *  replace existing ones.
-     *
-     *      var arr = [
-     *          {name: "foo", value: 1},
-     *          {name: "bar", value: 2},
-     *          {name: "foo", value: 3}
-     *      ];
-     *      util.Array.pluck(arr, "name", "value");
-     *      // -> {foo: 3, bar: 2}
-     *
-     *  To execute a method rather than accessing a property, use the
-     *  [[util.Array.invoke]] method.
-     **/
-    function pluck(array, property, value) {
-
-        var plucked = {};
-
-        if (typeof value === "string") {
-
-            forEach(array, function (entry) {
-                plucked[entry[property]] = entry[value];
-            });
-
-        } else {
-
-            plucked = map(array, function (entry) {
-                return entry[property];
-            });
-
-        }
-
-        return plucked;
 
     }
 
@@ -457,14 +358,13 @@ define([
      **/
     function shuffle(array) {
 
-        var shuffled = core.arrayFrom(array),
+        var shuffled = interpret(array),
             length = shuffled.length,
             index = 0,
             temp = undefined;
 
         while (length) {
 
-            //index = Math.floor(Math.random() * length);
             index = core.randInt(length);
             length -= 1;
 
@@ -485,14 +385,15 @@ define([
         every,
         filter,
         first,
-        forEach,
+        forEach: core.arrayForEach,
         from: core.arrayFrom,
+        interpret,
         invoke,
         isArrayLike: core.isArrayLike
         last,
         makeInvoker,
-        map,
-        pluck,
+        map: core.arrayMap,
+        pluck: core.arrayPluck,
         shuffle,
         some,
         unique

@@ -14,6 +14,19 @@ define([
     var number = {};
 
     /**
+     *  util.Number.interpret(number) -> Number
+     *  - number (?): Number to interpret.
+     *
+     *  Interprets the given `number` as a `Number`. If `number` cannot be
+     *  interpretted as a number, `0` is returned. Passing a variable through
+     *  this function will guarentee that the result will be usable by all the
+     *  [[util.Number]].
+     **/
+    var interpret = function (number) {
+        return +number || 0;
+    };
+
+    /**
      *  util.Number.times(number, handler[, context])
      *  - number (Number): Number of times to execute the handler.
      *  - handler (Function): Handler to execute.
@@ -66,6 +79,7 @@ define([
     }
 
     core.assign(number, {
+        interpret,
         isNumeric, core.isNumeric,
         randFloat: core.randFloat,
         randInt: core.randInt,

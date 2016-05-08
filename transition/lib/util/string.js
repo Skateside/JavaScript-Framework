@@ -16,6 +16,42 @@ define([
     var defaultPattern = /(^|.|\r|\n)(\$\{(.*?)\})/g;
 
     /**
+     *  util.String.identify(string) -> String
+     *  - string (?): Object to identify as a string.
+     *
+     *  Identifies the given `string` as a string.
+     *
+     *      util.String.identify("abc"); // -> "abc"
+     *      util.String.identify(123);   // -> "123"
+     *
+     *  This is frequently done by executing the `toString` method (if there is
+     *  one). Many native types already have a `toString` method.
+     *
+     *      var custom = {
+     *          toString: function () {
+     *              return "hi";
+     *          }
+     *      };
+     *      util.String.identify(custom); // -> "hi"
+     *      util.String.identify({});     // -> "[object Object]"
+     *      util.String.identify([1, 2]); // -> "1,2"
+     *
+     *  If `null` or `undefined` are passed, an empty string is returned.
+     *
+     *      util.String.identify(null);      // -> ""
+     *      util.String.identify(undefined); // -> ""
+     *      util.String.identify();          // -> ""
+     *
+     **/
+    var identify = function (string) {
+
+        return (string === undefined || string === null)
+            ? ""
+            : String(string);
+
+    };
+
+    /**
      *  util.String.isStringy(string) -> Boolean
      *  - string (?): String to test.
      *
@@ -27,9 +63,9 @@ define([
      *      util.String.isStringy([]); // -> false
      *
      **/
-    var isStringy(string) {
+    var isStringy = function (string) {
         return typeof string === "string" || typeof string === "number";
-    }
+    };
 
     /** alias of: util.String.camelize
      *  util.String.camelise(string, hyphens = "-_") -> String
@@ -53,7 +89,7 @@ define([
      **/
     function camelise(string, hyphens) {
 
-        var str = String(string);
+        var str = identify(string);
         var chars = typeof hyphens === "string"
             ? hyphens
             : "-_";
@@ -92,9 +128,12 @@ define([
             hyphen = "-";
         }
 
-        return str.replace(/([a-z])([A-Z])/g, function (ignore, lower, upper) {
-            return lower + hyphen + upper.toLowerCase();
-        });
+        return identify(str).replace(
+            /([a-z])([A-Z])/g,
+            function (ignore, lower, upper) {
+                return lower + hyphen + upper.toLowerCase();
+            }
+        );
 
     }
 
@@ -155,10 +194,10 @@ define([
      **/
     function supplant(string, replacements, pattern) {
 
-        string = String(string);
+        string = identify(string);
         replacements = replacements || {};
 
-        if (!isRegExp(pattern)) {
+        if (!core.isRegExp(pattern)) {
             pattern = defaultPattern;
         }
 
@@ -189,7 +228,7 @@ define([
      **/
     function toUpperFirst(str, lowerOthers) {
 
-        var string = String(str);
+        var string = identify(str);
 
         return string.charAt(0).toUpperCase() + string.slice(1);
 
@@ -246,6 +285,7 @@ define([
         camelise,
         camelize: camelise,
         hyphenate,
+        identify,
         isStringy,
         supplant,
         toUpperFirst,
