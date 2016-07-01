@@ -1,6 +1,6 @@
 define([
-    "./lib/util"
-    "./lib/dom/core"
+    "lib/util"
+    "lib/dom/core"
 ], function (
     util,
     core

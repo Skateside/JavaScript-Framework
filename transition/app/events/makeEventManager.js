@@ -1,6 +1,6 @@
 define([
-    "./lib/util",
-    "./app/events/makeEventList"
+    "lib/util",
+    "app/events/makeEventList"
 ], function (
     util,
     makeEventList
@@ -27,9 +27,9 @@ define([
          * 	[[eventList]] for that `name`, one is created.
          *
          *		var manager = makeEventManager();
-         *		manager.get('one'); // -> eventList "one"
-         *		manager.get('one'); // -> eventList "one"
-         *		manager.get('two'); // -> eventList "two"
+         *		manager.get("one"); // -> eventList "one"
+         *		manager.get("one"); // -> eventList "one" again
+         *		manager.get("two"); // -> eventList "two"
          *
          **/
         function get(name) {
@@ -43,7 +43,7 @@ define([
         }
 
         util.Object.assign(manager, {
-            get
+            get: get
         });
 
         return Object.freeze(manager);

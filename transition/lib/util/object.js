@@ -383,12 +383,12 @@ define([
      *  - context (?): Optional context for `handler`.
      *
      *  Converts the given `object` much the same as `Array.prototype.map` would
-     *  convert an array. This process is vary similar to [[util.Object.pair]]
+     *  convert an array. This process is very similar to [[util.Object.pair]]
      *  (and the `handler` is passed a pair in the same way) but the result is
      *  converted into an object before being returned.
      *
      *      var object = {foo: 1, bar: 2};
-     *      var mapped = util.Object.pair(function (pair) {
+     *      var mapped = util.Object.map(function (pair) {
      *          pair.value *= 2;
      *          return pair;
      *      });

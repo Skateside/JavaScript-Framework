@@ -4,7 +4,7 @@
  *  Namespace for all Function functions.
  **/
 define([
-    "./lib/util/core.js"
+    "lib/util/core.js"
 ], function (
     core
 ) {
@@ -94,11 +94,11 @@ define([
     }
 
     core.assign(functions, {
-        curry,
+        curry: curry,
         identity: core.identity,
-        interpret,
+        interpret: interpret,
         isNative: core.isFunctionNative,
-        noop
+        noop: noop
     });
 
     return Object.freeze(functions);

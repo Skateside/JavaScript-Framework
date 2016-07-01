@@ -4,7 +4,7 @@
  *  Namespace for all RegExp functions.
  **/
 define([
-    "./lib/util/core"
+    "lib/util/core"
 ], function (
     core
 ) {
@@ -29,7 +29,7 @@ define([
 
     core.assign(regexp, {
         escape: core.escapeRegExp,
-        interpret,
+        interpret: interpret,
         isRegExp: core.isRegExp
     });
 

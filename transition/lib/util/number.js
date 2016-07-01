@@ -4,7 +4,7 @@
  *  Namespace for all Number functions.
  **/
 define([
-    "./lib/util/core"
+    "lib/util/core"
 ], function (
     core
 ) {
@@ -79,11 +79,11 @@ define([
     }
 
     core.assign(number, {
-        interpret,
-        isNumeric, core.isNumeric,
+        interpret: interpret,
+        isNumeric: core.isNumeric,
         randFloat: core.randFloat,
         randInt: core.randInt,
-        times,
+        times: times,
         toPosInt: core.toPosInt
     });
 

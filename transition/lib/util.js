@@ -17,13 +17,13 @@
  *  array-like object will work with array utilities etc.
  **/
 define([
-    "./lib/util/core",
-    "./lib/util/array",
-    "./lib/util/function",
-    "./lib/util/number",
-    "./lib/util/object",
-    "./lib/util/regexp",
-    "./lib/util/string"
+    "lib/util/core",
+    "lib/util/array",
+    "lib/util/function",
+    "lib/util/number",
+    "lib/util/object",
+    "lib/util/regexp",
+    "lib/util/string"
 ], function (
     core,
     array,

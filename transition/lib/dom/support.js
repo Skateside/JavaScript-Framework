@@ -1,7 +1,7 @@
 /*jslint browser */
 /*globals require*/
 define([
-    "./lib/util"
+    "lib/util"
 ], function (
     util
 ) {
@@ -115,15 +115,15 @@ define([
 
     // Some browsers support HTMLElement.classList but not the ability to add
     // multiple classes.
-    addTest('multiClassList', function (dummy) {
+    addTest("multiClassList", function (dummy) {
 
         var isSupported = false;
 
-        if (getTest('classList')) {
+        if (getTest("classList")) {
 
-            dummy.classList.add('one', 'two');
-            isSupported = dummy.classList.contains('two');
-            dummy.classList.remove('one', 'two');
+            dummy.classList.add("one", "two");
+            isSupported = dummy.classList.contains("two");
+            dummy.classList.remove("one", "two");
 
         }
 

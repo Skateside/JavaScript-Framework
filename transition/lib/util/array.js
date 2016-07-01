@@ -4,9 +4,11 @@
  *  Namespace for all Array functions.
  **/
 define([
-    "./lib/util/core"
+    "lib/util/core",
+    "lib/util/array/sortBy"
 ], function (
-    core
+    core,
+    sortBy
 ) {
 
     var array = {};
@@ -29,7 +31,7 @@ define([
         return core.arrayFrom(array);
     };
 
-    /**
+    /** alias of: util.Array.doWhile
      *  util.Array.every(array, handler[, context]) -> Boolean
      *  - array (Array): Array to test.
      *  - handler (Function): Function for testing.
@@ -74,7 +76,7 @@ define([
     };
 
 
-    /**
+    /** alias of: util.Array.doUntil
      *  util.Array.some(array, handler[, context]) -> Boolean
      *  - array (Array): Array to test.
      *  - handler (Function): Function for testing.
@@ -378,25 +380,90 @@ define([
 
     }
 
+    /**
+     * 	util.Array.sort(array[, sorter]) -> Array
+     * 	- array (Array): Array to sort.
+     * 	- sorter (Function): Optional sorting function.
+     *
+     *  Sorts the given `array`, optionally by the defined `sorter`. Unlike the
+     *  native `Array.prototype.sort`, this method does not affect the original
+     *  array, returns the sorted version and will work on array-like
+     *  structures.
+     *
+     *      var arr = [1, 7, 3, 9, 5];
+     *      util.Array.sort(arr); // -> [1, 3, 5, 7, 9];
+     *      // arr = [1, 7, 3, 9, 5]
+     *
+     *  The `sorter` will take two entries in the array and compare them. The
+     *  `sorter` should return a number; if the number is 0 then no change is
+     *  made, if the number is positive then the first will be after the second
+     *  and if the number is negative then the second will be after the first.
+     *
+     *      util.Array.sort(arr, function (a, b) {
+     *          return b - a;
+     *      });
+     *      // -> [9, 7, 5, 3, 1]
+     *
+     *  Although any sorting method can be used, there are a selection of
+     *  pre-defined sorting methods in [[util.Array.sortBy]].
+     **/
+    function sort(array, sorter) {
+
+        var sorted = interpret(array);
+
+        sorted.sort(sorter);
+
+        return sorted;
+
+    }
+
     core.assign(array, {
-        chunk,
-        common,
-        diff,
-        every,
-        filter,
-        first,
+
+        chunk: chunk,
+        common: common,
+        diff: diff,
+        every: every,
+        filter: filter,
+        first: first,
         forEach: core.arrayForEach,
         from: core.arrayFrom,
-        interpret,
-        invoke,
+        interpret: interpret,
+        invoke: invoke,
         isArrayLike: core.isArrayLike
-        last,
-        makeInvoker,
+        last: last,
+        makeInvoker: makeInvoker,
         map: core.arrayMap,
         pluck: core.arrayPluck,
-        shuffle,
-        some,
-        unique
+        shuffle: shuffle,
+        some: some,
+        sort: sort,
+        sortBy: sortBy,
+        unique: unique,
+
+        /** alias of: util.Array.some
+         *  util.Array.doUntil(array, handler, context);
+         *  - array (Array): Array to test.
+         *  - handler (Function): Function for testing.
+         *  - context (Object): Optional context for `handler`.
+         *
+         *  Executes `handler` over the entries in `array` until `handler`
+         *  returns `true`. This is identical to [[util.Array.some]] but the
+         *  alias may convey the developer's intention more accurately.
+         **/
+        doUntil: some,
+
+        /** alias of: util.Array.every
+         *  util.Array.doWhile(array, handler, context);
+         *  - array (Array): Array to test.
+         *  - handler (Function): Function for testing.
+         *  - context (Object): Optional context for `handler`.
+         *
+         *  Executes `handler` over the entries in `array` while `handler`
+         *  returns `true`. This is identical to [[util.Array.every]] but the
+         *  alias may convey the developer's intention more accurately.
+         **/
+        doWhile: every
+
     });
 
     return Object.freeze(array);

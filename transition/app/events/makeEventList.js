@@ -1,5 +1,5 @@
 define([
-    "./lib/util"
+    "lib/util"
 ], function (
     util
 ) {
@@ -191,11 +191,11 @@ define([
         }
 
         util.Object.assign(list, {
-            add,
-            remove,
-            each,
-            doWhile,
-            doUntil
+            add: add,
+            remove: remove,
+            each: each,
+            doWhile: doWhile,
+            doUntil: doUntil
         });
 
         return Object.freeze(list);

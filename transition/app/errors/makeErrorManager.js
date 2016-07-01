@@ -1,5 +1,5 @@
 define([
-    "./lib/util"
+    "lib/util"
 ], function (
     util
 ) {
@@ -57,13 +57,13 @@ define([
 
         util.Object.assign(manager, {
 
-            FATAL,
-            WARNING,
-            NOTICE,
-            DEPRECATED,
+            FATAL: FATAL,
+            WARNING: WARNING,
+            NOTICE: NOTICE,
+            DEPRECATED: DEPRECATED,
 
-            create,
-            trigger,
+            create: create,
+            trigger: trigger,
 
             triggerFatal: curry(trigger, undefined, FATAL),
             triggerWarning: curry(trigger, undefined, WARNING),

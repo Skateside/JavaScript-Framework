@@ -1,7 +1,7 @@
 define([
     "app",
-    "./lib/util",
-    "./lib/dom/support"
+    "lib/util",
+    "lib/dom/support"
 ], function (
     app,
     util,
@@ -64,7 +64,7 @@ define([
 
         return (
             element
-                ? element.defaultView || element.parentWindow
+                ? (element.defaultView || element.parentWindow)
                 : undefined
             ) || window;
 
@@ -125,8 +125,10 @@ define([
      **/
     function isFragment(fragment) {
 
-        return isNode(fragment) &&
-                fragment.nodeType === Node.DOCUMENT_FRAGMENT_NODE;
+        return (
+            isNode(fragment)
+            && fragment.nodeType === Node.DOCUMENT_FRAGMENT_NODE
+        );
 
     }
 
@@ -304,14 +306,15 @@ define([
 
     });
 
-    util.Array.every([
+    // Override `is` with `matches` (if the browser recognises it).
+    util.Array.doWhile([
         "matches",
         "webkitMatchesSelector",
         "mozMatchesSelector",
         "msMatchesSelector"
     ], function (method) {
 
-        var ret = true;
+        var hasNoMatches = true;
 
         if (util.Function.isFunction(HTMLElement.prototype[method])) {
 
@@ -319,43 +322,15 @@ define([
                 return element[method](selector);
             };
 
-            ret = false;
+            hasNoMatches = false;
 
         }
 
-        return ret;
+        return hasNoMatches;
 
     });
 
     util.Object.assign(dom, {
-
-        /**
-         *  dom.each(elements, method, ...args) -> Array
-         *  - elements (Array|NodeList): Elements to work on.
-         *  - method (String): Method to execute.
-         *  - args (?): Arguments for the method.
-         *
-         *  Executes a [[dom]] method on all the elements in the `elements`
-         *  collection. For example, to get all IDs of all elements with an `id`
-         *  attribute, [[dom.identify]] can be used:
-         *
-         *      dom.each(dom.get('[id]'), 'identify');
-         *      // -> ['one', 'two', ... ]
-         *
-         *  Additional arguments can be passed to the [[dom]] method. For
-         *  example, this will set an attribute on all elements with an `id`
-         *  attribute.
-         *
-         *      dom.each(dom.get('[id]'), 'setAttr', 'data-dom', true);
-         *      // All elements with an id attribute now have the attribute
-         *      // data-dom="true"
-         *
-         *  Any collection of elements will work, including an `Array` or a
-         *  `NodeList`. An individual element will not work, but the original
-         *  method may simply be called in those situations.
-         **/
-        each: util.Array.makeInvoker(dom),
-
         getRoot,
         getWindow,
         getClosestElement,
@@ -366,7 +341,6 @@ define([
         isFragment,
         isNode,
         toHtml
-
     });
 
     return Object.freeze(dom);

@@ -259,6 +259,8 @@ define(function () {
      *      util.Object.getType([]); // -> "array"
      *      typeof null; // -> "object"
      *      util.Object.getType(null); // -> "null"
+     *      typeof NaN; // -> "number"
+     *      util.Object.getType(NaN); // -> "nan"
      *
      **/
     function getType(object) {
@@ -273,6 +275,8 @@ define(function () {
                 type = "array";
             }
 
+        } else if (type === "number" && isNaN(object)) {
+            type = "nan";
         }
 
         return type;
@@ -355,7 +359,7 @@ define(function () {
         var minimum = Math.min(absMin, absMax);
         var maximum = Math.max(absMin, absMax);
 
-        return minimim + Math.random() * (maximum - minimum);
+        return minimum + Math.random() * (maximum - minimum);
 
     }
 
@@ -470,19 +474,19 @@ define(function () {
     }
 
     assign(core, {
-        arrayForEach,
-        arrayFrom,
-        arrayMap,
-        arrayPluck,
-        assign,
-        escapeRegExp,
-        getType,
-        identity,
-        isArrayLike,
-        isFunctionNative,
-        isNumeric,
-        isRegExp,
-        topPosInt
+        arrayForEach: arrayForEach,
+        arrayFrom: arrayFrom,
+        arrayMap: arrayMap,
+        arrayPluck: arrayPluck,
+        assign: assign,
+        escapeRegExp: escapeRegExp,
+        getType: getType,
+        identity: identity,
+        isArrayLike: isArrayLike,
+        isFunctionNative: isFunctionNative,
+        isNumeric: isNumeric,
+        isRegExp: isRegExp,
+        toPosInt: toPosInt
     });
 
     return Object.freeze(core);

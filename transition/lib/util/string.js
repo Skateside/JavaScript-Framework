@@ -4,7 +4,7 @@
  *  Namespace for all String functions.
  **/
 define([
-    "./lib/util/core"
+    "lib/util/core"
 ], function (
     core
 ) {
@@ -13,16 +13,22 @@ define([
 
     var string = {};
     var seed = 123456789 + core.randInt(Date.now());
-    var defaultPattern = /(^|.|\r|\n)(\$\{(.*?)\})/g;
 
     /**
-     *  util.String.identify(string) -> String
-     *  - string (?): Object to identify as a string.
+     *  util.String.SUPPLANT_PATTERN = /(^|.|\r|\n)(\$\{(.*?)\})/g
+     *
+     *  The default pattern used in [[util.String.supplant]].
+     **/
+    const SUPPLANT_PATTERN = /(^|.|\r|\n)(\$\{(.*?)\})/g;
+
+    /**
+     *  util.String.interpret(string) -> String
+     *  - string (?): Object to interpret as a string.
      *
      *  Identifies the given `string` as a string.
      *
-     *      util.String.identify("abc"); // -> "abc"
-     *      util.String.identify(123);   // -> "123"
+     *      util.String.interpret("abc"); // -> "abc"
+     *      util.String.interpret(123);   // -> "123"
      *
      *  This is frequently done by executing the `toString` method (if there is
      *  one). Many native types already have a `toString` method.
@@ -32,18 +38,18 @@ define([
      *              return "hi";
      *          }
      *      };
-     *      util.String.identify(custom); // -> "hi"
-     *      util.String.identify({});     // -> "[object Object]"
-     *      util.String.identify([1, 2]); // -> "1,2"
+     *      util.String.interpret(custom); // -> "hi"
+     *      util.String.interpret({});     // -> "[object Object]"
+     *      util.String.interpret([1, 2]); // -> "1,2"
      *
      *  If `null` or `undefined` are passed, an empty string is returned.
      *
-     *      util.String.identify(null);      // -> ""
-     *      util.String.identify(undefined); // -> ""
-     *      util.String.identify();          // -> ""
+     *      util.String.interpret(null);      // -> ""
+     *      util.String.interpret(undefined); // -> ""
+     *      util.String.interpret();          // -> ""
      *
      **/
-    var identify = function (string) {
+    var interpret = function (string) {
 
         return (string === undefined || string === null)
             ? ""
@@ -89,7 +95,7 @@ define([
      **/
     function camelise(string, hyphens) {
 
-        var str = identify(string);
+        var str = interpret(string);
         var chars = typeof hyphens === "string"
             ? hyphens
             : "-_";
@@ -128,7 +134,7 @@ define([
             hyphen = "-";
         }
 
-        return identify(str).replace(
+        return interpret(str).replace(
             /([a-z])([A-Z])/g,
             function (ignore, lower, upper) {
                 return lower + hyphen + upper.toLowerCase();
@@ -146,20 +152,20 @@ define([
      *  Replaces the placeholders in the given `string` with the properties in
      *  the `replacements` object.
      *
-     *      var string = "Hello ${world}",
-     *          reps   = {world: "you"};
+     *      var string = "Hello ${world}";
+     *      var reps = {world: "you"};
      *      util.String.supplant(string, reps); // -> "Hello you"
      *
      *  Placeholders can appear multiple times within the string.
      *
-     *      var string = "Hello ${world} ${world}",
-     *          reps   = {world: "you"};
+     *      var string = "Hello ${world} ${world}";
+     *      var reps = {world: "you"};
      *      util.String.supplant(string, reps); // -> "Hello you you"
      *
      *  Placeholders can be escaped with `"\\"`.
      *
-     *      var string = "Hello \\${world} ${world}",
-     *          reps   = {world: "you"};
+     *      var string = "Hello \\${world} ${world}";
+     *      var reps = {world: "you"};
      *      util.String.supplant(string, reps); // -> "Hello ${world} you"
      *
      *  If the placeholder property isn't found, or the value isn't stringy (see
@@ -171,8 +177,9 @@ define([
      *      // -> "Hello ${world}"
      *
      *  The pattern for the placeholders can be defined by passing a regular
-     *  expression as the `pattern` argument. The pattern should match 3 parts
-     *  and be global (have the `g` flag). The three parts are:
+     *  expression as the `pattern` argument (if ommitted,
+     *  [[util.String.SUPPLANT_PATTERN]] is used). The pattern should match 3
+     *  parts and be global (have the `g` flag). The three parts are:
      *
      *  -   The prefix before the placeholder.
      *  -   The whole placeholder.
@@ -185,20 +192,20 @@ define([
      *
      *  Here's an example of using this function with double braces.
      *
-     *      var string = "Hello \\{{world}} {{world}}",
-     *          reps   = {world: 'you'},
-     *          ptrn   = /(^|.|\r|\n)(\{\{(.*?)\}\})/;
+     *      var string = "Hello \\{{world}} {{world}}";
+     *      var reps = {world: "you"};
+     *      var ptrn = /(^|.|\r|\n)(\{\{(.*?)\}\})/;
      *      util.String.supplant(string, reps, ptrn);
      *      // -> "Hello {{world}} you"
      *
      **/
     function supplant(string, replacements, pattern) {
 
-        string = identify(string);
+        string = interpret(string);
         replacements = replacements || {};
 
         if (!core.isRegExp(pattern)) {
-            pattern = defaultPattern;
+            pattern = SUPPLANT_PATTERN;
         }
 
         return string.replace(pattern, function (ignore, prefix, whole, key) {
@@ -228,7 +235,7 @@ define([
      **/
     function toUpperFirst(str, lowerOthers) {
 
-        var string = identify(str);
+        var string = interpret(str);
 
         return string.charAt(0).toUpperCase() + string.slice(1);
 
@@ -282,14 +289,26 @@ define([
     }
 
     core.assign(string, {
-        camelise,
-        camelize: camelise,
-        hyphenate,
-        identify,
-        isStringy,
-        supplant,
-        toUpperFirst,
-        uniqid
+
+        camelise: camelise,
+        hyphenate: hyphenate,
+        interpret: interpret,
+        isStringy: isStringy,
+        supplant: supplant,
+        SUPPLANT_PATTERN: SUPPLANT_PATTERN,
+        toUpperFirst: toUpperFirst,
+        uniqid: uniqid,
+
+        /** alias of: util.String.camelise
+         *  util.String.camelize(string, hyphens = "-_") -> String
+         *  - string (String): String to convert.
+         *  - hyphens (String): Hyphens to remove.
+         *
+         *  An alias of [[util.String.camelise]] to aid developers used to
+         *  American English.
+         **/
+        camelize: camelise
+
     });
 
     return Object.freeze(string);

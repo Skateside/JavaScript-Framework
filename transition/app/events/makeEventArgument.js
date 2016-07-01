@@ -1,6 +1,6 @@
 define([
     "app",
-    "./lib/util"
+    "lib/util"
 ], function (
     app,
     util
@@ -125,14 +125,14 @@ define([
              *
              *  Name of the event that was executed.
              */
-            name,
+            name: name,
 
-            stopAction,
-            isActionStopped,
-            stopPromoting,
-            isPromotingStopped,
-            stopExecuting,
-            isExecutingStopped
+            stopAction: stopAction,
+            isActionStopped: isActionStopped,
+            stopPromoting: stopPromoting,
+            isPromotingStopped: isPromotingStopped,
+            stopExecuting: stopExecuting,
+            isExecutingStopped: isExecutingStopped
 
         });
 

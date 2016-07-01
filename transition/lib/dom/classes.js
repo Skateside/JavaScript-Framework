@@ -1,7 +1,7 @@
 define([
-    "./lib/util",
-    "./lib/dom/core",
-    "./lib/dom/support"
+    "lib/util",
+    "lib/dom/core",
+    "lib/dom/support"
 ], function (
     util,
     core,

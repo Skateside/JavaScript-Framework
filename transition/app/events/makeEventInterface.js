@@ -1,8 +1,8 @@
 define([
     "app",
-    "./lib/util",
-    "./app/events/makeEventManager"
-    "./app/events/makeEventArgument"
+    "lib/util",
+    "app/events/makeEventManager"
+    "app/events/makeEventArgument"
 ], function (
     app,
     util,
@@ -245,10 +245,10 @@ define([
         }
 
         util.Object.assign(inter, {
-            create,
-            on,
-            off,
-            emit
+            create: create,
+            on: on,
+            off: off,
+            emit: emit
         });
 
         return Object.freeze(inter);
