@@ -45,26 +45,6 @@ define([
     };
 
     /**
-     *  util.Object.owns(object, property) -> Boolean
-     *  - object (Object): Object to test.
-     *  - property (String): Property to check.
-     *
-     *  Tests whether an object has the given property.
-     *
-     *      var object1 = { foo: 1 };
-     *      var object2 = Object.create(object1);
-     *      object2.bar = 2;
-     *      util.Object.owns(object1, "foo"); // -> true
-     *      util.Object.owns(object1, "bar"); // -> false
-     *      util.Object.owns(object2, "foo"); // -> false
-     *      util.Object.owns(object2, "var"); // -> true
-     *
-     **/
-    var owns = function (object, property) {
-        return Object.prototype.hasOwnProperty.call(object, property);
-    };
-
-    /**
      *  util.Object.isPlainObject(object) -> Boolean
      *  - object (?): Object to test.
      *
@@ -81,7 +61,7 @@ define([
 
         var isPlain = (
             object !== null
-            && typeof object === 'object'
+            && typeof object === "object"
             && object !== window
         );
 
@@ -91,7 +71,7 @@ define([
 
                 if (
                     !object.constructor
-                    || !owns(object.constructor.prototype, 'isPrototypeOf')
+                    || !core.owns(object.constructor.prototype, "isPrototypeOf")
                 ) {
                     isPlain = false;
                 }
@@ -335,9 +315,9 @@ define([
 
             if (
                 isPlainObject(pair)
-                && owns(pair, "key")
+                && core.owns(pair, "key")
                 && typeof pair.key === "string"
-                && owns(pair, "value")
+                && core.owns(pair, "value")
             ) {
                 pairs.push(pair);
             }
@@ -407,17 +387,104 @@ define([
 
     }
 
+    /**
+     *  util.Object.isSimilar(source, compare[, isSame = false]) -> Boolean
+     *  - source (Object): Source object to test.
+     *  - compare (Object): Comparisson object.
+     *  - isSame (Boolean): Optional flag for checking both objects.
+     *
+     *  Checks to see if the key/value pairs in `compare` appear in `source`.
+     *  `source` may have additional properties, but this function will return
+     *  `true` if it contains all the properties that `compare` has.
+     *
+     *      var source = { a: 1, b: 2, c: 3 };
+     *      util.Object.isSimilar(source, { a: 1, b: 2 }); // -> true
+     *      util.Object.isSimilar(source, { a: 1, b: 2, c: 3 }); // -> true
+     *      util.Object.isSimilar(source, { a: 1, b: 3 }); // -> false
+     *
+     *  The function checks all object values. The object in `compare` does not
+     *  need to have all the keys in `source`.
+     *
+     *      var nestOne = {
+     *          foo: {
+     *              fooOne: 1,
+     *              fooTwo: 2
+     *          },
+     *          bar: true
+     *      };
+     *      var nestTwo = {
+     *          foo: {
+     *              fooOne: 1
+     *          }
+     *      };
+     *      util.Object.isSimilar(nestOne, nestTwo); // -> true
+     *      util.Object.isSimilar(nestOne, { foo: [] }); // -> false
+     *
+     *  To check that both objects contain the same keys, the `isSame` flag can
+     *  be set to `true`.
+     *
+     *      util.Object.isSimilar(source, { a: 1, b: 2 }, true); // -> false
+     *
+     **/
+    function isSimilar(source, compare, isSame) {
+
+        var similar = true;
+
+        Object.keys(compare).every(function (key) {
+
+            var value = compare[key];
+            var original = source[key];
+            var matches = core.owns(source, key);
+
+            if (matches) {
+
+                switch (core.getType(value)) {
+
+                case "object":
+                    matches = isSimilar(original, value);
+                    break;
+                case "array":
+                    matches = core.isArraySimilar(original, value);
+                    break;
+                case "nan"
+                    matches = isNaN(original);
+                    break;
+                default:
+                    matches = value === original;
+
+                }
+
+            }
+
+            if (!matches) {
+                similar = matches;
+            }
+
+            // Stop looking when we find the first difference.
+            return similar;
+
+        });
+
+        if (similar && isSame) {
+            similar = isSimilar(compare, source);
+        }
+
+        return similar;
+
+    }
+
     core.assign(object, {
         assign: core.assign,
-        clone,
-        each,
-        filter,
+        clone: clone,
+        each: each,
+        filter: filter,
         getType: core.getType,
-        isPlainObject,
-        looksLike,
-        map,
-        owns,
-        pair
+        isPlainObject: isPlainObject,
+        isSimilar: isSimilar,
+        looksLike: looksLike,
+        map: map,
+        owns: core.owns,
+        pair: pair
     });
 
     return Object.freeze(object);

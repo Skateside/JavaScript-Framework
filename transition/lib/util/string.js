@@ -22,6 +22,55 @@ define([
     const SUPPLANT_PATTERN = /(^|.|\r|\n)(\$\{(.*?)\})/g;
 
     /**
+     *  util.String.CLIP_LEFT = "left"
+     *
+     *  Direction possibility for [[util.String.clip]].
+     **/
+    const CLIP_LEFT = "left";
+
+    /**
+     *  util.String.CLIP_RIGHT = "right"
+     *
+     *  Direction possibility for [[util.String.clip]].
+     **/
+    const CLIP_RIGHT = "right";
+
+    /**
+     *  util.String.CLIP_BOTH = "both"
+     *
+     *  Direction possibility for [[util.String.clip]].
+     **/
+    const CLIP_BOTH = "both";
+
+    /**
+     *  util.String.PAD_LEFT = "left"
+     *
+     *  Direction possibility for [[util.String.pad]].
+     **/
+    const PAD_LEFT = "left";
+
+    /**
+     *  util.String.PAD_RIGHT = "right"
+     *
+     *  Direction possibility for [[util.String.pad]].
+     **/
+    const PAD_RIGHT = "right";
+
+    /**
+     *  util.String.PAD_BOTH = "both"
+     *
+     *  Direction possibility for [[util.String.pad]].
+     **/
+    const PAD_BOTH = "both";
+
+    /**
+     *  util.String.PAD_DEFAULT = "0"
+     *
+     *  Default padding for [[util.String.pad]].
+     **/
+    const PAD_DEFAULT = "0";
+
+    /**
      *  util.String.interpret(string) -> String
      *  - string (?): Object to interpret as a string.
      *
@@ -73,6 +122,36 @@ define([
         return typeof string === "string" || typeof string === "number";
     };
 
+    /**
+     *  util.String.repeat(string, times) -> String
+     *  - string (String): String to repeat.
+     *  - times (Number): Number of times to repeat `string`.
+     *
+     *  Repeats `string` `times` many times.
+     *
+     *      util.String.repeat("abc", 3); // -> "abcabcabc";
+     *
+     *  If `times` is negative, a `RangeError` is thrown.
+     *
+     *      util.String.repeat("abc", -3); // throws RangeError
+     *
+     **/
+    var repeat = core.owns(String.prototype, "repeat")
+        ? function (string, times) {
+            return String(string).repeat(times);
+        }
+        : function (string, times) {
+
+            times = +times || 0;
+
+            if (times < 0) {
+                throw new RangeError("times must be positive");
+            }
+
+            return Array(times + 1).join(string);
+
+        };
+
     /** alias of: util.String.camelize
      *  util.String.camelise(string, hyphens = "-_") -> String
      *  - string (String): String to convert.
@@ -111,6 +190,79 @@ define([
     }
 
     /**
+     *  util.String.clip(string, length[, direction = util.String.CLIP_RIGHT]) -> String
+     *  - string (String): String to clip.
+     *  - length (Number): Maximum length for the returned string.
+     *  - direction (String): Optional direction for the clipping.
+     *
+     *  Clips `string` to that it is no longer than `length`. If `length` is
+     *  larger than the length of `string`, no action is taken.
+     *
+     *      util.String.clip("abcdefg", 3); // -> "abc"
+     *      util.String.clip("abcdefg", 9); // -> "abcdefg"
+     *
+     *  The clipping takes place from the right by default. To change this,
+     *  there are other possible values for `direction`:
+     *
+     *  ## [[util.String.CLIP_RIGHT]] (default)
+     *
+     *  Clips the string from the right.
+     *
+     *      util.String.clip("abcdefg", 3, util.String.CLIP_RIGHT); // -> "abc"
+     *
+     *  ## [[util.String.CLIP_LEFT]]
+     *
+     *  Clips the string from the left.
+     *
+     *      util.String.clip("abcdefg", 3, util.String.CLIP_LEFT); // -> "efg"
+     *
+     *  ## [[util.String.CLIP_BOTH]]
+     *
+     *  Clips the string from either side equally.
+     *
+     *      util.String.clip("abcdefg", 3, util.String.CLIP_BOTH); // -> "cde"
+     *
+     *  If it is not possible to remove an equal number of characters from both
+     *  sides, the additional character is removed from the right.
+     *
+     *      util.String.clip("abcdefg", 4, util.String.CLIP_BOTH); // -> "bcde"
+     *
+     **/
+    function clip(string, length, direction) {
+
+        var str = interpret(string);
+        var len = +length || str.length;
+        var dif = str.length - len;
+
+        if (dif > 0) {
+
+            switch (direction) {
+
+            case CLIP_LEFT:
+                str = str.slice(dif);
+                break;
+
+            case CLIP_BOTH:
+
+                dif = Math.floor(dif / 2);
+                str = str.slice(dif, len + dif);
+
+                break;
+
+            //case CLIP_RIGHT:
+            default:
+                str = str.slice(0, len);
+
+            }
+
+        }
+
+        return str;
+
+    }
+
+
+    /**
      *  util.String.hyphenate(str[, hyphen = "-"]) -> String
      *  - str (String): String to hyphenate.
      *  - hyphen (String): Hyphen character.
@@ -144,7 +296,109 @@ define([
     }
 
     /**
-     *  util.String.supplant(string, replacements[, pattern]) -> String
+     *  util.String.pad(string, length[, padding = util.String.PAD_DEFAULT[, direction = util.String.PAD_RIGHT]]) -> String
+     *  - string (String): String to pad.
+     *  - length (Number): Minimum length for the padded string.
+     *  - padding (String): Optional padding.
+     *  - direction (String): Optional direction for the padding.
+     *
+     *  Pads `string` until it is at least `length` characters long. By default,
+     *  the padding is added to the right. If `length` is less than or equal to
+     *  the length of `string` already, no action is taken.
+     *
+     *      util.String.pad("abcde", 9); // -> "abcde0000"
+     *      util.String.pad("abcde", 4); // -> "abcde"
+     *
+     *  The string used for padding can be defined by passing a value as the
+     *  `padding` argument.
+     *
+     *      util.String.pad("abcde", 9, "-"); // -> "abcde----"
+     *
+     *  Multiple characters can be used for padding. The resulting string will
+     *  only be a long as `length`.
+     *
+     *      util.String.pad("abcde", 9, "-=");    // -> "abcde-=-="
+     *      util.String.pad("abcde", 9, "-=+^*"); // -> "abcde-=+^"
+     *
+     *  If `padding` cannot be identified as a string, or is an empty string,
+     *  [[util.String.PAD_DEFAULT]] (`"0"`) is used.
+     *
+     *      util.String.pad("abcde", 9, "");   // -> "abcde0000"
+     *      util.String.pad("abcde", 9, null); // -> "abcde0000"
+     *
+     *  To change the side to which the padding is applied, there are a few
+     *  values that can be passed as the direction.
+     *
+     *  ## [[util.String.PAD_RIGHT]] (default)
+     *
+     *  Adds the padding to the right side of `string`.
+     *
+     *      util.String.pad("abcde", 9, "-", util.String.PAD_RIGHT);
+     *      // -> "abcde----"
+     *      util.String.pad("abcde", 9, "-=+^*", util.String.PAD_RIGHT);
+     *      // -> "abcde-=+^"
+     *
+     *  ## [[util.String.PAD_LEFT]]
+     *
+     *  Adds the padding to the left side of `string`.
+     *
+     *      util.String.pad("abcde", 9, "-", util.String.PAD_LEFT);
+     *      // -> "----abcde"
+     *      util.String.pad("abcde", 9, "-=+^*", util.String.PAD_LEFT);
+     *      // -> "=+^*abcde"
+     *
+     *  ## [[util.String.PAD_BOTH]]
+     *
+     *  Adds the padding to both sides of `string` equally.
+     *
+     *      util.String.pad("abcde", 9, "-", util.String.PAD_BOTH);
+     *      // -> "--abcde--"
+     *      util.String.pad("abcde", 9, "-=+^*", util.String.PAD_BOTH);
+     *      // -> "^*abcde-="
+     *
+     *  If the padding cannot be applied to both sides equally, the additional
+     *  character is applied to the right side.
+     *
+     *      util.String.pad("abcde", 8, "-", util.String.PAD_BOTH);
+     *      // -> "-abcde--"
+     *
+     **/
+    function pad(string, length, padding, direction) {
+
+        var str = interpret(string);
+        var len = +length || 0;
+        var pad = interpret(padding) || PAD_DEFAULT;
+        var rep;
+
+        if (len - str.length > 0) {
+
+            rep = repeat(pad, len);
+
+            switch (direction) {
+
+            case PAD_LEFT:
+                str = clip(rep + str, len, CLIP_LEFT);
+                break;
+
+            case PAD_BOTH:
+                str = clip(rep + str + rep, len, CLIP_BOTH);
+                break;
+
+            //case PAD_RIGHT:
+            default:
+                str = clip(str + rep, len, CLIP_RIGHT);
+
+            }
+
+        }
+
+        return str;
+
+    }
+
+
+    /**
+     *  util.String.supplant(string, replacements[, pattern = util.String.SUPPLANT_PATTERN]) -> String
      *  - string (String): String to supplant.
      *  - replacements (Object): Replacements for the string.
      *  - pattern (RegExp): Optional pattern for the placeholders.
@@ -290,12 +544,25 @@ define([
 
     core.assign(string, {
 
+        // constants
+        CLIP_LEFT: CLIP_LEFT,
+        CLIP_RIGHT: CLIP_RIGHT,
+        CLIP_BOTH: CLIP_BOTH,
+        PAD_LEFT: PAD_LEFT,
+        PAD_RIGHT: PAD_RIGHT,
+        PAD_BOTH: PAD_BOTH,
+        PAD_DEFAULT: PAD_DEFAULT,
+        SUPPLANT_PATTERN: SUPPLANT_PATTERN,
+
+        // methods
         camelise: camelise,
+        clip: clip,
         hyphenate: hyphenate,
         interpret: interpret,
         isStringy: isStringy,
+        pad: pad,
+        repeat: repeat,
         supplant: supplant,
-        SUPPLANT_PATTERN: SUPPLANT_PATTERN,
         toUpperFirst: toUpperFirst,
         uniqid: uniqid,
 

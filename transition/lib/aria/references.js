@@ -84,28 +84,35 @@ define([
         return dom.byId(core.getProperty(element, name));
     }
 
+    /**
+     *  aria.hasReference(element, name) -> Boolean
+     *  - element (Element): Element to test.
+     *  - name (String): Reference to check.
+     *
+     *  Checks whether an element has the given reference and that the
+     *  referenced element exists. To just check whether the element has the
+     *  property, use [[aria.hasProperty]].
+     *
+     *      <div id="foo">Label</div>
+     *      <div aria-labelledby="foo" aria-controls="not-real"></div>
+     *
+     *      var elem = document.querySelector("[aria-labelledby]");
+     *      aria.hasReference(elem, "labelledby");       // -> true
+     *      aria.hasReference(elem, "activedescendant"); // -> false
+     *      aria.hasReference(elem, "does-not-exist");   // -> false
+     *      aria.hasProperty(elem, "controls");          // -> true
+     *      aria.hasReference(elem, "controls");         // -> false
+     *
+     **/
+    function hasReference(element, name) {
+        return getReference(element, name) !== null;
+    }
+
     util.Object.assign(references, {
 
         getReference: getReference,
         setReference: setReference,
-
-        /**
-         *  aria.hasReference(element, name) -> Boolean
-         *  - element (Element): Element to test.
-         *  - name (String): Reference to check.
-         *
-         *  Checks whether an element has the given reference.
-         *
-         *      <div id="foo">Label</div>
-         *      <div aria-labelledby="foo"></div>
-         *
-         *      var elem = document.querySelector("[aria-labelledby]");
-         *      aria.hasReference(elem, "labelledby");       // -> true
-         *      aria.hasReference(elem, "activedescendant"); // -> false
-         *      aria.hasReference(elem, "does-not-exist");   // -> false
-         *
-         **/
-        hasReference: hasProperty,
+        hasReference: hasReference,
 
         /**
          *  aria.hasReference(element, name) -> Boolean
@@ -123,7 +130,7 @@ define([
          *      // <div></div>
          *
          **/
-        removeReference: removeProperty
+        removeReference: core.removeProperty
 
     });
 

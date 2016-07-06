@@ -12,8 +12,11 @@ define([
 
     var states = {};
 
+    const REGEXP_BOOLEAN = /^(?:true|false)$/;
+    const VALUE_MIXED = "mixed";
+
     /**
-     *  aria.getState(element, name) -> Boolean|undefined
+     *  aria.getState(element, name) -> Boolean|String|undefined
      *  - element (Element): Element whose state should be returned.
      *  - name (String): Name of the state.
      *
@@ -29,17 +32,43 @@ define([
      *
      *      aria.getState(elem, "checked"); // -> undefined
      *
+     *  For a tristate value, if the value is `"mixed"`, the string `"mixed"` is
+     *  returned. If the value is anything else, it will not be considered a
+     *  state.
+     *
+     *      <input id="bar" type="checkbox"
+     *      	aria-checked="mixed"
+     *      	aria-pressed="thing">
+     *
+     *      aria.getState(dom.byId("bar"), "checked"); // -> "mixed"
+     *      aria.getState(dom.byId("bar"), "pressed"); // -> false
+     *
+     *  Unlike HTML5 boolean attributes which consider exististence to be
+     *  `true`, a WAI-ARIA state must be set to `"true"` in order to be valid.
+     *
+     *      <input id="baz" type="text" required aria-hidden>
+     *
+     *      var elem3 = dom.byId("baz");
+     *      aria.getState(elem3, "hidden"); // -> false
+     *
      *  Be warned that the loose equality operator (`==`) will coerce
-     *  `undefined` into `false` which may create an undesired result. Either
+     *  `undefined` into `false` which may create an undesired result. Equally,
+     *  just using `!` will return `true` if the value is `"mixed"`. Either
      *  always use the strict equality operator (`===`) or combine this with
      *  [[aria.hasState]] or [[aria.hasProperty]].
      **/
     function getState(element, name) {
 
         var state;
+        var value;
 
         if (core.hasProperty(element, name)) {
-            state = core.getProperty(element, name).toLowerCase() === "true";
+
+            value = core.getProperty(element, name).toLowerCase();
+            state = value === VALUE_MIXED
+                ? value
+                : (REGEXP_BOOLEAN.test(value) && value === "true");
+
         }
 
         return state;
@@ -60,10 +89,14 @@ define([
 
         case "string":
 
-            if (raw === "1" || raw === "0") {
+            raw = raw.toLowerCase();
+
+            if (raw === VALUE_MIXED) {
+                state = raw;
+            } else if (raw === "1" || raw === "0") {
                 state = readState(+raw);
-            } else if (/^(?:true|false)$/i.test(raw)) {
-                state = raw.toLowerCase() === "true";
+            } else if (REGEXP_BOOLEAN.test(raw)) {
+                state = raw === "true";
             }
 
             break;
@@ -114,6 +147,11 @@ define([
      *      aria.setState(elem, "hidden", 0);
      *      aria.setState(elem, "hidden", "0");
      *
+     *  The value can also be set to `"mixed"`.
+     *
+     *      aria.setState(elem, "checked", "mixed");
+     *      aria.setState(elem, "checked", "MIXED");
+     *
      *  If the `state` argument is ommitted or not recognised, the state is set
      *  to `true`. Therefore, the following examples will all set the
      *  `aria-busy` state to `true`:
@@ -122,6 +160,7 @@ define([
      *      aria.setState(elem, "busy", {});
      *      aria.setState(elem, "busy", null);
      *      aria.setState(elem, "busy", "nothing");
+     *      aria.setState(elem, "busy", "");
      *      aria.setState(elem, "busy", -1);
      *
      *  For simplicity, it may be easier to always pass a boolean as the `state`
@@ -131,28 +170,44 @@ define([
         core.setProperty(element, name, readState(state));
     }
 
+    /**
+     *  aria.hasState(element, name) -> Boolean
+     *  - element (Element): Element to check.
+     *  - name (String): Name of the state to check.
+     *
+     *  Checks to see if the given element has the given state, regardless
+     *  of the current setting of that state. It also checks that the state is
+     *  an actual boolean value (or `"mixed"`) instead of any other string or
+     *  simply assigned to the element.
+     *
+     *      <div id="foo"
+     *          aria-hidden="true"
+     *          aria-busy="false"
+     *          aria-disabled="any-string"
+     *          aria-invalid
+     *      >Foo</div>
+     *
+     *      var elem = dom.byId("foo");
+     *      aria.getState(elem, "hidden");   // -> true
+     *      aria.getState(elem, "budy");     // -> true
+     *      aria.getState(elem, "checked");  // -> false
+     *      aria.getState(elem, "disabled"); // -> false
+     *      aria.getState(elem, "invalid");  // -> false
+     *
+     **/
+    function hasState(element, name) {
+
+        var state = getState(element, name);
+
+        return typeof state === "boolean" || state === VALUE_MIXED;
+
+    }
+
     util.Object.assign(states, {
 
         getState: getState,
         setState: setState,
-
-        /**
-         *  aria.hasState(element, name) -> Boolean
-         *  - element (Element): Element to check.
-         *  - name (String): Name of the state to check.
-         *
-         *  Checks to see if the given element has the given state, regardless
-         *  of the current setting of that state.
-         *
-         *      <div id="foo" aria-hidden="true" aria-busy="false">Foo</div>
-         *
-         *      var elem = dom.byId("foo");
-         *      aria.getState(elem, "hidden");  // -> true
-         *      aria.getState(elem, "budy");    // -> true
-         *      aria.getState(elem, "checked"); // -> false
-         *
-         **/
-        hasState: hasProperty,
+        hasState: hasState,
 
         /**
          *  aria.removeState(element, name) -> Boolean
@@ -169,7 +224,7 @@ define([
          *      // <div id="foo" aria-busy="false">Foo</div>
          *
          **/
-        removeState: removeProperty
+        removeState: core.removeProperty
 
     });
 

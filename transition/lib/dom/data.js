@@ -15,13 +15,17 @@ define([
     // Gets the object that keeps data for the given element.
     function getDataObject(element) {
 
-        element = core.getClosestElement(element);
+        var elem = core.getClosestElement(element);
+        var data = dataMap.get(element);
 
-        if (!dataMap.has(element)) {
-            dataMap.set(element, {});
+        if (!data) {
+
+            data = {};
+            dataMap.set(element, data);
+
         }
 
-        return data.get(element);
+        return data;
 
     }
 
@@ -92,14 +96,14 @@ define([
 
         var data = getDataObject(element);
 
-        return typeof key === "string"
-            ? data[key]
-            : util.Object.clone(data);
+        return key === undefined
+            ? util.Object.clone(data)
+            : data[key];
 
     }
 
     /**
-     *  dom.removeData(element, key)
+     *  dom.deleteData(element, key)
      *  - element (Element): Element whose data should be removed.
      *  - key (String): Key for the data to remove.
      *
@@ -108,19 +112,19 @@ define([
      *      var div = document.createElement('div');
      *      dom.setData(div, 'exists', 1);
      *      dom.getData(div, 'exists'); // -> 1
-     *      dom.removeData(div, 'exists');
+     *      dom.deleteData(div, 'exists');
      *      dom.getData(div, 'exists'); // -> undefined
      *
      **/
-    function removeData(element, key) {
+    function deleteData(element, key) {
         delete getDataObject(element)[key];
     }
 
     util.Object.assign(dom, {
-        getData,
-        hasData,
-        removeData,
-        setData
+        getData: getData,
+        hasData: hasData,
+        deleteData: deleteData,
+        setData: setData
     });
 
     return Object.freeze(dom);

@@ -180,6 +180,35 @@ define(function () {
     };
 
     /**
+     *  util.Array.unique(array) -> Array
+     *  - array (Array): Array that should be reduced.
+     *
+     *  Reduces an array so that only unique entries remain.
+     *
+     *      util.Array.unique([1, 2, 1, 3, 1, 4, 2, 5]);
+     *      // -> [1, 2, 3, 4, 5]
+     *
+     *  This method also works on array-like structures.
+     *
+     *      util.Array.unique('mississippi');
+     *      // -> ['m', 'i', 's', 'p']
+     *
+     **/
+    var arrayUnique = function (array) {
+
+        return interpret(array).reduce(function (prev, curr) {
+
+            if (prev.indexOf(curr) < 0) {
+                prev.push(curr);
+            }
+
+            return prev;
+
+        }, []);
+
+    };
+
+    /**
      *  util.Number.isNumeric(number) -> Boolean
      *  - number (?): Number to test.
      *
@@ -473,19 +502,135 @@ define(function () {
 
     }
 
+    /**
+     *  util.Array.common(array1, ...arrays) -> Array
+     *  - array (Array): Original array to compare.
+     *  - arrays (Array): Arrays to compare against the original.
+     *
+     *  This method returns an array of all the entries that appear in `array1`
+     *  that also appear in all the other arrays.
+     *
+     *      util.Array.common([1, 2, 3, 4, 5], [1, 2]);         // -> [1, 2]
+     *      util.Array.common([1, 2, 3, 4, 5], [1, 2], [2, 3]); // -> [2]
+     *
+     *  Each entry in the results will only appear once (in the order in which
+     *  they were first encountered) - see [[util.Array.unique]] for full
+     *  details.
+     **/
+    function arrayCommon(array, ...arrays) {
+
+        return arrayUnique(arrays.reduce(function (array1, array2) {
+
+            var arr = arrayFrom(array2);
+
+            return array1.filter(function (entry) {
+                return arr.indexOf(entry) > -1;
+            });
+
+        }, arrayFrom(array)));
+
+    }
+
+    /**
+     *  util.Array.diff(array1, ...arrays) -> Array
+     *  - array (Array): Original array to compare.
+     *  - arrays (Array): Additional arrays to compare against.
+     *
+     *  This method returns an array of all the entries that appear in `array1`
+     *  and do not appear in any other array in `arrays`.
+     *
+     *      util.Array.diff([1, 2, 3, 4, 5], [1, 2]);            // -> [3, 4, 5]
+     *      util.Array.diff([1, 2, 3, 4, 5], [1, 2], [4, 5]);    // -> [3]
+     *      util.Array.diff([1, 2, 3, 4, 5], [1, 2, 3], [4, 5]); // -> []
+     *
+     *  Each entry in the results will only appear once (in the order in which
+     *  they were first encountered) - see [[util.Array.unique]] for full
+     *  details.
+     **/
+    function arrayDiff(array, ...arrays) {
+
+        return arrayUnique(arrays.reduce(function (array1, array2) {
+
+            var arr = arrayFrom(array2);
+
+            return array1.filter(function (entry) {
+                return arr.indexOf(entry) < 0;
+            });
+
+        }, arrayFrom(array)));
+
+    }
+
+    /**
+     *  util.Array.isSimilar(source, compare) -> Boolean
+     *  - source (Array): Array to compare.
+     *  - compare (Array): Array to compare.
+     *
+     *  Compares two arrays to see if they have the same length and contain the
+     *  same items.
+     *
+     *      var arr1 = [1, 2, 3];
+     *      var arr2 = [1, 2, 3];
+     *      arr1 === arr2; // -> false
+     *      util.Array.isSimilar(arr1, arr2); // -> true
+     *      util.Array.isSimilar(arr1, [1, 2]); // -> false
+     *      util.Array.isSimilar(arr1, [1, 2, 3, 1]); // -> false
+     *
+     *  The array items do not need to have the same index for the arrays to be
+     *  considered similar.
+     *
+     *      var arr3 = [3, 2, 1];
+     *      uti.Array.isSimilar(arr1, arr3); // -> true
+     *
+     **/
+    function isArraySimilar(source, compare) {
+
+        return (
+            source.length === array.length
+            && arrayCommon(source, array).length === arrayUnique(source).length
+        );
+
+    }
+
+    /**
+     *  util.Object.owns(object, property) -> Boolean
+     *  - object (Object): Object to test.
+     *  - property (String): Property to check.
+     *
+     *  Tests whether an object has the given property.
+     *
+     *      var object1 = { foo: 1 };
+     *      var object2 = Object.create(object1);
+     *      object2.bar = 2;
+     *      util.Object.owns(object1, "foo"); // -> true
+     *      util.Object.owns(object1, "bar"); // -> false
+     *      util.Object.owns(object2, "foo"); // -> false
+     *      util.Object.owns(object2, "var"); // -> true
+     *
+     **/
+    function owns(object, property) {
+        return Object.prototype.hasOwnProperty.call(object, property);
+    }
+
+
     assign(core, {
+        arrayCommon: arrayCommon,
+        arrayDiff: arrayDiff,
         arrayForEach: arrayForEach,
         arrayFrom: arrayFrom,
         arrayMap: arrayMap,
         arrayPluck: arrayPluck,
+        arrayUnique: arrayUnique,
         assign: assign,
         escapeRegExp: escapeRegExp,
         getType: getType,
         identity: identity,
         isArrayLike: isArrayLike,
+        isArraySimilar: isArraySimilar,
         isFunctionNative: isFunctionNative,
         isNumeric: isNumeric,
         isRegExp: isRegExp,
+        owns: owns,
         toPosInt: toPosInt
     });
 

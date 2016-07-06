@@ -98,35 +98,6 @@ define([
     };
 
     /**
-     *  util.Array.unique(array) -> Array
-     *  - array (Array): Array that should be reduced.
-     *
-     *  Reduces an array so that only unique entries remain.
-     *
-     *      util.Array.unique([1, 2, 1, 3, 1, 4, 2, 5]);
-     *      // -> [1, 2, 3, 4, 5]
-     *
-     *  This method also works on array-like structures.
-     *
-     *      util.Array.unique('mississippi');
-     *      // -> ['m', 'i', 's', 'p']
-     *
-     **/
-    var unique = function (array) {
-
-        return interpret(array).reduce(function (prev, curr) {
-
-            if (prev.indexOf(curr) < 0) {
-                prev.push(curr);
-            }
-
-            return prev;
-
-        }, []);
-
-    };
-
-    /**
      *  util.Array.chunk(array, size[, map[, context]]) -> Array
      *  - array (Array): Array to group.
      *  - size (Number): Maximum size of the groups.
@@ -164,65 +135,6 @@ define([
         }
 
         return chunked;
-
-    }
-
-    /**
-     *  util.Array.common(array1, ...arrays) -> Array
-     *  - array (Array): Original array to compare.
-     *  - arrays (Array): Arrays to compare against the original.
-     *
-     *  This method returns an array of all the entries that appear in `array1`
-     *  that also appear in all the other arrays.
-     *
-     *      util.Array.common([1, 2, 3, 4, 5], [1, 2]);         // -> [1, 2]
-     *      util.Array.common([1, 2, 3, 4, 5], [1, 2], [2, 3]); // -> [2]
-     *
-     *  Each entry in the results will only appear once (in the order in which
-     *  they were first encountered) - see [[util.Array.unique]] for full
-     *  details.
-     **/
-    function common(array, ...arrays) {
-
-        return unique(arrays.reduce(function (array1, array2) {
-
-            var arr = interpret(array2);
-
-            return array1.filter(function (entry) {
-                return arr.indexOf(entry) > -1;
-            });
-
-        }, interpret(array)));
-
-    }
-
-    /**
-     *  util.Array.diff(array1, ...arrays) -> Array
-     *  - array (Array): Original array to compare.
-     *  - arrays (Array): Additional arrays to compare against.
-     *
-     *  This method returns an array of all the entries that appear in `array1`
-     *  and do not appear in any other array in `arrays`.
-     *
-     *      util.Array.diff([1, 2, 3, 4, 5], [1, 2]);            // -> [3, 4, 5]
-     *      util.Array.diff([1, 2, 3, 4, 5], [1, 2], [4, 5]);    // -> [3]
-     *      util.Array.diff([1, 2, 3, 4, 5], [1, 2, 3], [4, 5]); // -> []
-     *
-     *  Each entry in the results will only appear once (in the order in which
-     *  they were first encountered) - see [[util.Array.unique]] for full
-     *  details.
-     **/
-    function diff(array, ...arrays) {
-
-        return unique(arrays.reduce(function (array1, array2) {
-
-            var arr = interpret(array2);
-
-            return array1.filter(function (entry) {
-                return arr.indexOf(entry) < 0;
-            });
-
-        }, interpret(array)));
 
     }
 
@@ -420,8 +332,8 @@ define([
     core.assign(array, {
 
         chunk: chunk,
-        common: common,
-        diff: diff,
+        common: core.arrayCommon,
+        diff: core.arrayDiff,
         every: every,
         filter: filter,
         first: first,
@@ -430,6 +342,7 @@ define([
         interpret: interpret,
         invoke: invoke,
         isArrayLike: core.isArrayLike
+        isSimilar: core.isArraySimilar,
         last: last,
         makeInvoker: makeInvoker,
         map: core.arrayMap,
@@ -438,7 +351,7 @@ define([
         some: some,
         sort: sort,
         sortBy: sortBy,
-        unique: unique,
+        unique: core.arrayUnique,
 
         /** alias of: util.Array.some
          *  util.Array.doUntil(array, handler, context);
