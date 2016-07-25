@@ -70,41 +70,8 @@ define([
      **/
     const PAD_DEFAULT = "0";
 
-    /**
-     *  util.String.interpret(string) -> String
-     *  - string (?): Object to interpret as a string.
-     *
-     *  Identifies the given `string` as a string.
-     *
-     *      util.String.interpret("abc"); // -> "abc"
-     *      util.String.interpret(123);   // -> "123"
-     *
-     *  This is frequently done by executing the `toString` method (if there is
-     *  one). Many native types already have a `toString` method.
-     *
-     *      var custom = {
-     *          toString: function () {
-     *              return "hi";
-     *          }
-     *      };
-     *      util.String.interpret(custom); // -> "hi"
-     *      util.String.interpret({});     // -> "[object Object]"
-     *      util.String.interpret([1, 2]); // -> "1,2"
-     *
-     *  If `null` or `undefined` are passed, an empty string is returned.
-     *
-     *      util.String.interpret(null);      // -> ""
-     *      util.String.interpret(undefined); // -> ""
-     *      util.String.interpret();          // -> ""
-     *
-     **/
-    var interpret = function (string) {
-
-        return (string === undefined || string === null)
-            ? ""
-            : String(string);
-
-    };
+    // Handy short-cut.
+    var interpret = core.stringInterpret;
 
     /**
      *  util.String.isStringy(string) -> Boolean

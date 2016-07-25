@@ -473,6 +473,76 @@ define([
 
     }
 
+    // Helper function for creating query string key/value pairs.
+    function toQueryPair(key, value) {
+
+        if (value !== undefined) {
+
+            value = core.stringInterpret(value).replace(/(\r)?\n/g, "\r\n");
+            value = window.encodeURIComponent(value).replace(/%20/g, "+");
+
+            key += "=" + value;
+
+        }
+
+        return key;
+
+    }
+
+    /**
+     *  util.Object.toQuery(object) -> String
+     *  - object (Object): Information to convert.
+     *
+     *  Converts data into query string parameters that AJAX would accept.
+     *
+     *      var one = {
+     *          action: "ship",
+     *          orderId: 123,
+     *          fees: ["f1", "f2"]
+     *      };
+     *      util.Object.toQuery(one);
+     *      // -> "action=ship&orderId=123&fees=f1&fees=f2"
+     *
+     *      var two = {
+     *      	comment: "",
+     *          "spaced key": true,
+     *          related: undefined,
+     *          contents: null,
+     *          label: "a demo"
+     *      };
+     *      util.Object.toQuery(two);
+     *      // -> "comment=&spaced%20key=true&related&contents=&label=a%20demo"
+     *
+     *      var three = {};
+     *      util.Object.toQuery(three);
+     *      // -> ""
+     *
+     **/
+    function toQuery(object) {
+
+        var query = [];
+
+        each(object, function (key, value) {
+
+            key = window.encodeURIComponent(key);
+
+            if (Array.isArray(value)) {
+
+                value.forEach(function (v) {
+                    query.push(toQueryPair(key, value));
+                });
+
+            } else {
+                query.push(toQueryPair(key, value));
+            }
+
+
+        });
+
+        return query.join("&");
+
+    }
+
     core.assign(object, {
         assign: core.assign,
         clone: clone,
@@ -484,7 +554,8 @@ define([
         looksLike: looksLike,
         map: map,
         owns: core.owns,
-        pair: pair
+        pair: pair,
+        toQuery: toQuery
     });
 
     return Object.freeze(object);

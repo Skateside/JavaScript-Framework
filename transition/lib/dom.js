@@ -2,13 +2,14 @@ define([
     "lib/util",
     "lib/dom/core",
     "lib/dom/attributes",
-    "/lib/dom/classes",
-    "/lib/dom/data",
-    "/lib/dom/events",
-    "/lib/dom/lookups",
-    "/lib/dom/manipulations",
-    "/lib/dom/support",
-    "/lib/dom/traversal"
+    "lib/dom/classes",
+    "lib/dom/data",
+    "lib/dom/events",
+    "lib/dom/lookups",
+    "lib/dom/manipulations",
+    "lib/dom/support",
+    "lib/dom/traversal",
+    "lib/dom/helpers"
 ], function (
     util,
     core,
@@ -19,7 +20,8 @@ define([
     lookups,
     manipulations,
     support,
-    traversal
+    traversal,
+    helpers
 ) {
 
     "use strict";
@@ -27,16 +29,17 @@ define([
     var dom = {};
 
     util.Object.assign(
-        dom: dom,
-        core: core,
-        attributes: attributes,
-        classes: classes,
-        data: data,
-        events: events,
-        lookups: lookups,
-        manipulations: manipulations,
-        support: support,
-        traversal: traversal
+        dom,
+        core,
+        attributes,
+        classes,
+        data,
+        events,
+        lookups,
+        manipulations,
+        support,
+        traversal,
+        helpers
     );
 
     /**

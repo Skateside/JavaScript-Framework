@@ -52,7 +52,7 @@ define([
      **/
     function getProperty(element, name) {
         return dom.getAttr(element, normalise(name));
-    },
+    }
 
     /**
      *  aria.hasProperty(element, name) -> Boolean
@@ -72,7 +72,7 @@ define([
      **/
     function hasProperty(element, name) {
         return dom.hasAttr(element, normalise(name));
-    },
+    }
 
     /**
      *  aria.setProperty(element, name, value)
@@ -104,7 +104,7 @@ define([
      **/
     function setProperty(element, name, value) {
         dom.setAttr(element, normalise(name), value);
-    },
+    }
 
     /**
      *  aria.removeProperty(element, name)

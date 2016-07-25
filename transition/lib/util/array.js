@@ -170,6 +170,55 @@ define([
     }
 
     /**
+     *  util.Array.getIndex(array, item[, offset]) -> Number
+     *  - array (Array): Array to check.
+     *  - item (?): Item to search for.
+     *  - offset (Number): Optional offset.
+     *
+     *  Gets the index of `item` within `array`, returning -1 if `item` cannot
+     *  be found.
+     *
+     *      util.Array.getIndex(["zero", "one", "two"], "one");   // -> 1
+     *      util.Array.getIndex(["zero", "one", "two"], "three"); // -> -1
+     *
+     *  An `offset` can be defined to only check after a certain point.
+     *
+     *      util.Array.getIndex([1, 2, 3, 1, 2, 3], 1);    // -> 0
+     *      util.Array.getIndex([1, 2, 3, 1, 2, 3], 1, 1); // -> 3
+     *      util.Array.getIndex([1, 2, 3, 1, 2, 3], 1, 4); // -> -1
+     *
+     *  This method works on array-like structures as well.
+     *
+     *      util.Array.getIndex("mississippi", "i");    // -> 1
+     *      util.Array.getIndex("mississippi", "i", 2); // -> 4
+     *
+     **/
+    function getIndex(array, item, offset) {
+        return Array.protoype.indexOf.call(array, item, offset);
+    }
+
+    /**
+     *  util.Array.contains(array, item[, offset]) -> Boolean
+     *  - array (Array): Array to check.
+     *  - item (?): Item to search for.
+     *  - offset (Number): Optional offset.
+     *
+     *  Check to see if `item` is within `array`, returning `true` if it does.
+     *
+     *      util.Array.contains(["one", "two", "three"], "two");  // -> true
+     *      util.Array.contains(["one", "two", "three"], "four"); // -> false
+     *
+     *  An `offset` can be defined, which only starts checking from that point.
+     *
+     *      util.Array.contains(["one", "two", "three"], "two");     // -> true
+     *      util.Array.contains(["one", "two", "three"], "two", 2);  // -> false
+     * 
+     **/
+    function contains(array, item, offset) {
+        return getIndex(array, item, offset) > -1;
+    }
+
+    /**
      *  util.Array.invoke(array, method[, ...args]) -> Array
      *  - array (Array): Array over which to iterate.
      *  - method (String): Function to execute on each entry of the array.

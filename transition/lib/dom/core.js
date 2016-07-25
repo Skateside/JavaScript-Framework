@@ -153,14 +153,18 @@ define([
      **/
     function getClosestElement(element) {
 
-        if (element !== getRoot() && element !== getWindow(element)) {
+        if (!isElement(element)) {
 
-            if (!isElement(closest) && isNode(closest)) {
-                element = getClosestElement(element.parentNode);
-            }
+            if (element !== getRoot() && element !== getWindow(element)) {
 
-            if (!isElement(element)) {
-                triggerFatal("element is not an HTMLElement");
+                if (isNode(closest)) {
+                    element = getClosestElement(element.parentNode);
+                }
+
+                if (!isElement(element)) {
+                    triggerFatal("element is not an HTMLElement");
+                }
+
             }
 
         }

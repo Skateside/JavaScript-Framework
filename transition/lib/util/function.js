@@ -64,9 +64,11 @@ define([
 
             args.forEach(function (arg) {
 
-                allArgs.push(arg === undefined
-                    ? innerArgs.shift()
-                    : arg);
+                allArgs.push(
+                    arg === undefined
+                        ? innerArgs.shift()
+                        : arg
+                );
 
             });
 
@@ -93,11 +95,45 @@ define([
 
     }
 
+    /**
+     *  util.Function.negate(func) -> Function
+     *  - func (Function): Function to negate.
+     *
+     *  Returns the opposite that `func` returned. This is designed to help in
+     *  the creation of functions that return booleans.
+     *
+     *      var isTrue = function () {
+     *          return true;
+     *      };
+     *      var isFalse = util.Function.negate(isTrue);
+     *      isTrue();  // -> true
+     *      isFalse(); // -> false
+     *
+     *  The returned function would accept all the arguments that the source
+     *  function would.
+     *
+     *      var isTruthy = function (obj) {
+     *          return !!obj;
+     *      };
+     *      var isFalsy(isTruthy);
+     *      isTruthy(1); // -> true
+     *      isFalsy(1);  // -> false
+     *
+     **/
+    function negate(func) {
+
+        return function (...args) {
+            return !func(...args);
+        };
+
+    }
+
     core.assign(functions, {
         curry: curry,
         identity: core.identity,
         interpret: interpret,
         isNative: core.isFunctionNative,
+        negate: negate,
         noop: noop
     });
 
