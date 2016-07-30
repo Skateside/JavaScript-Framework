@@ -8,3 +8,6 @@ This library prioritises readability and code style over performance. As such, a
 - [jQuery](http://jquery.com) is one of the best DOM libraries available.
 - A lot of the MVC structure of this library is based on [canjs](https://canjs.com)
 
+## State of this library
+
+Currently this library is an unfinished draft or in a pre-alpha state.
